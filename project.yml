@@ -46,3 +46,21 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ggsheng.FakeChat.UITests
         TEST_TARGET_NAME: FakeChat
+
+schemes:
+  FakeChat:
+    build:
+      targets:
+        FakeChat: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - FakeChatUITests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release
