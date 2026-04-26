@@ -37,8 +37,8 @@ class MainTabBarController: UITabBarController {
             appearance.backgroundColor = UIColor(hex: "0A0A0A")
             appearance.stackedLayoutAppearance.normal.iconColor = UIColor.white.withAlphaComponent(0.5)
             appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.white.withAlphaComponent(0.5)]
-            appearance.stackedLayoutAppearance.selected.iconColor = .white
-            appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: .white]
+            appearance.stackedLayoutAppearance.selected.iconColor = UIColor.white
+            appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor.white]
             tabBar.standardAppearance = appearance
             tabBar.scrollEdgeAppearance = appearance
         }
