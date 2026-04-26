@@ -1,27 +1,65 @@
 import UIKit
 
 class SettingsViewController: UIViewController {
-    private var tableView: UITableView!
-
+    private let tableView = UITableView(frame: .zero, style: .insetGrouped)
+    
+    private struct SettingItem {
+        let icon: String
+        let iconColor: UIColor
+        let title: String
+        let subtitle: String?
+        let type: SettingType
+    }
+    
+    private enum SettingType {
+        case toggle(Bool)
+        case navigation(String)
+        case proBadge
+    }
+    
+    private var settings: [[SettingItem]] = []
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupSettings()
         setupUI()
     }
-
+    
+    private func setupSettings() {
+        settings = [
+            // Appearance
+            [
+                SettingItem(icon: "moon.fill", iconColor: Design.purple, title: "Dark Mode", subtitle: nil, type: .toggle(true)),
+                SettingItem(icon: "hand.tap.fill", iconColor: Design.cyan, title: "Haptic Feedback", subtitle: nil, type: .toggle(true))
+            ],
+            // Defaults
+            [
+                SettingItem(icon: "message.fill", iconColor: Design.cyan, title: "Default App", subtitle: "iMessage", type: .navigation("app")),
+                SettingItem(icon: "photo.fill", iconColor: Design.pink, title: "Default Wallpaper", subtitle: "Default", type: .navigation("wallpaper"))
+            ],
+            // Premium
+            [
+                SettingItem(icon: "crown.fill", iconColor: Design.yellow, title: "Upgrade to Pro", subtitle: "$2.99/month", type: .proBadge),
+                SettingItem(icon: "star.fill", iconColor: Design.orange, title: "Rate App", subtitle: nil, type: .navigation("rate")),
+                SettingItem(icon: "envelope.fill", iconColor: Design.green, title: "Send Feedback", subtitle: nil, type: .navigation("feedback"))
+            ],
+            // About
+            [
+                SettingItem(icon: "info.circle.fill", iconColor: .white, title: "Version", subtitle: "1.0.0", type: .navigation("version"))
+            ]
+        ]
+    }
+    
     private func setupUI() {
+        view.backgroundColor = Design.bgPrimary
         title = "Settings"
-        view.backgroundColor = AppTheme.background
-
-        navigationController?.navigationBar.prefersLargeTitles = true
-
-        tableView = UITableView(frame: .zero, style: .insetGrouped)
-        tableView.backgroundColor = AppTheme.background
+        
+        tableView.backgroundColor = .clear
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "SettingsCell")
-        tableView.register(SwitchCell.self, forCellReuseIdentifier: "SwitchCell")
+        tableView.register(SettingsCell.self, forCellReuseIdentifier: "SettingsCell")
         view.addSubview(tableView)
-
+        
         tableView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -30,145 +68,171 @@ class SettingsViewController: UIViewController {
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
-
-    private func showProUpgrade() {
-        let alert = UIAlertController(title: "Upgrade to Pro", message: "Get access to all templates, advanced apps, and no watermark for $2.99", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Upgrade", style: .default) { _ in })
-        alert.addAction(UIAlertAction(title: "Not Now", style: .cancel))
-        present(alert, animated: true)
-    }
 }
 
 extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 4
+        return settings.count
     }
-
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch section {
-        case 0: return 1 // Appearance
-        case 1: return 2 // Preferences
-        case 2: return 2 // About
-        case 3: return 1 // Pro
-        default: return 0
-        }
+        return settings[section].count
     }
-
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        switch section {
-        case 0: return "Appearance"
-        case 1: return "Preferences"
-        case 2: return "About"
-        case 3: return nil
-        default: return nil
-        }
-    }
-
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        switch indexPath.section {
-        case 0:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
-            cell.configure(title: "Dark Mode", isOn: AppTheme.isDarkMode) { isOn in
-                AppTheme.isDarkMode = isOn
-            }
-            return cell
-
-        case 1:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
-            if indexPath.row == 0 {
-                cell.configure(title: "Haptic Feedback", isOn: AppTheme.hapticEnabled) { isOn in
-                    AppTheme.hapticEnabled = isOn
-                }
-            } else {
-                cell.configure(title: "Default Chat App", isOn: true) { _ in }
-                cell.accessoryType = .disclosureIndicator
-            }
-            return cell
-
-        case 2:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsCell", for: indexPath)
-            cell.backgroundColor = AppTheme.surface
-            cell.textLabel?.textColor = AppTheme.textPrimary
-            if indexPath.row == 0 {
-                cell.textLabel?.text = "Privacy Policy"
-                cell.accessoryType = .disclosureIndicator
-            } else {
-                cell.textLabel?.text = "Version 1.0"
-                cell.accessoryType = .none
-                cell.textLabel?.textColor = AppTheme.textSecondary
-            }
-            return cell
-
-        case 3:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsCell", for: indexPath)
-            cell.backgroundColor = Theme.accentCyan.withAlphaComponent(0.15)
-            cell.textLabel?.text = "Upgrade to Pro ✨"
-            cell.textLabel?.textColor = Theme.accentCyan
-            cell.textLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-            cell.accessoryType = .disclosureIndicator
-            return cell
-
-        default:
-            return UITableViewCell()
-        }
+        let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsCell", for: indexPath) as! SettingsCell
+        let item = settings[indexPath.section][indexPath.row]
+        cell.configure(with: item)
+        return cell
     }
-
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        if indexPath.section == 2 && indexPath.row == 0 {
-            if let url = URL(string: "https://lauer3912.github.io/ios-FakeChat/docs/PrivacyPolicy.html") {
-                UIApplication.shared.open(url)
-            }
-        } else if indexPath.section == 3 {
-            showProUpgrade()
+        let item = settings[indexPath.section][indexPath.row]
+        
+        switch item.type {
+        case .navigation(let action):
+            handleNavigation(action: action)
+        case .proBadge:
+            handleProUpgrade()
+        default:
+            break
         }
+    }
+    
+    private func handleNavigation(action: String) {
+        // Handle navigation actions
+    }
+    
+    private func handleProUpgrade() {
+        let alert = UIAlertController(title: "Upgrade to Pro", message: "Get access to all premium features!", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Later", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Upgrade", style: .default))
+        present(alert, animated: true)
     }
 }
 
-class SwitchCell: UITableViewCell {
+class SettingsCell: UITableViewCell {
+    private let iconContainer = UIView()
+    private let iconView = UIImageView()
     private let titleLabel = UILabel()
-    private let toggle = UISwitch()
-    private var onToggle: ((Bool) -> Void)?
-
+    private let subtitleLabel = UILabel()
+    private let toggleSwitch = UISwitch()
+    private let arrowIcon = UIImageView()
+    private let proBadge = UILabel()
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
     }
-
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
     private func setupUI() {
-        backgroundColor = AppTheme.surface
-        selectionStyle = .none
-
-        titleLabel.font = .systemFont(ofSize: 17)
-        titleLabel.textColor = AppTheme.textPrimary
+        backgroundColor = Design.bgSecondary
+        selectionStyle = .default
+        
+        // Icon container
+        iconContainer.layer.cornerRadius = 8
+        contentView.addSubview(iconContainer)
+        
+        // Icon
+        iconView.contentMode = .scaleAspectFit
+        iconView.tintColor = .white
+        iconContainer.addSubview(iconView)
+        
+        // Title
+        titleLabel.font = Design.Typography.body
+        titleLabel.textColor = .white
         contentView.addSubview(titleLabel)
-
-        toggle.onTintColor = Theme.accentCyan
-        toggle.addTarget(self, action: #selector(toggleChanged), for: .valueChanged)
-        contentView.addSubview(toggle)
-
+        
+        // Subtitle
+        subtitleLabel.font = Design.Typography.caption
+        subtitleLabel.textColor = Design.cyan.withAlphaComponent(0.7)
+        contentView.addSubview(subtitleLabel)
+        
+        // Toggle
+        toggleSwitch.onTintColor = Design.cyan
+        toggleSwitch.isHidden = true
+        contentView.addSubview(toggleSwitch)
+        
+        // Arrow
+        arrowIcon.image = UIImage(systemName: "chevron.right")
+        arrowIcon.tintColor = UIColor.white.withAlphaComponent(0.3)
+        arrowIcon.isHidden = true
+        contentView.addSubview(arrowIcon)
+        
+        // Pro badge
+        proBadge.text = "PRO"
+        proBadge.font = Design.Typography.caption
+        proBadge.textColor = Design.bgPrimary
+        proBadge.backgroundColor = Design.yellow
+        proBadge.layer.cornerRadius = 4
+        proBadge.clipsToBounds = true
+        proBadge.textAlignment = .center
+        proBadge.isHidden = true
+        contentView.addSubview(proBadge)
+        
+        iconContainer.translatesAutoresizingMaskIntoConstraints = false
+        iconView.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        toggle.translatesAutoresizingMaskIntoConstraints = false
-
+        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        toggleSwitch.translatesAutoresizingMaskIntoConstraints = false
+        arrowIcon.translatesAutoresizingMaskIntoConstraints = false
+        proBadge.translatesAutoresizingMaskIntoConstraints = false
+        
         NSLayoutConstraint.activate([
-            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            iconContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            iconContainer.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            iconContainer.widthAnchor.constraint(equalToConstant: 32),
+            iconContainer.heightAnchor.constraint(equalToConstant: 32),
+            
+            iconView.centerXAnchor.constraint(equalTo: iconContainer.centerXAnchor),
+            iconView.centerYAnchor.constraint(equalTo: iconContainer.centerYAnchor),
+            iconView.widthAnchor.constraint(equalToConstant: 18),
+            iconView.heightAnchor.constraint(equalToConstant: 18),
+            
+            titleLabel.leadingAnchor.constraint(equalTo: iconContainer.trailingAnchor, constant: 12),
             titleLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            toggle.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            toggle.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+            
+            subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.trailingAnchor, constant: 8),
+            subtitleLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            
+            toggleSwitch.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            toggleSwitch.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            
+            arrowIcon.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            arrowIcon.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            arrowIcon.widthAnchor.constraint(equalToConstant: 10),
+            
+            proBadge.widthAnchor.constraint(equalToConstant: 40),
+            proBadge.heightAnchor.constraint(equalToConstant: 20),
+            proBadge.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            proBadge.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
         ])
     }
-
-    func configure(title: String, isOn: Bool, onToggle: @escaping (Bool) -> Void) {
-        titleLabel.text = title
-        toggle.isOn = isOn
-        self.onToggle = onToggle
-    }
-
-    @objc private func toggleChanged() {
-        onToggle?(toggle.isOn)
+    
+    func configure(with item: SettingsViewController.SettingItem) {
+        iconView.image = UIImage(systemName: item.icon)
+        iconContainer.backgroundColor = item.iconColor.withAlphaComponent(0.2)
+        titleLabel.text = item.title
+        subtitleLabel.text = item.subtitle
+        subtitleLabel.isHidden = item.subtitle == nil
+        
+        toggleSwitch.isHidden = true
+        arrowIcon.isHidden = true
+        proBadge.isHidden = true
+        
+        switch item.type {
+        case .toggle(let isOn):
+            toggleSwitch.isHidden = false
+            toggleSwitch.isOn = isOn
+        case .navigation:
+            arrowIcon.isHidden = false
+        case .proBadge:
+            proBadge.isHidden = false
+        }
     }
 }
