@@ -12,10 +12,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         let vc = UIViewController()
         vc.view.backgroundColor = .systemBlue
-        vc.view.addSubview(UILabel(frame: vc.view.bounds))
-        vc.view.subviews.last?.text = "FAKECHAT IS RUNNING!"
-        vc.view.subviews.last?.textAlignment = .center
-        vc.view.subviews.last?.font = .systemFont(ofSize: 48, weight: .bold)
+        
+        let label = UILabel(frame: vc.view.bounds)
+        label.text = "FAKECHAT IS RUNNING!"
+        label.textAlignment = .center
+        label.font = .systemFont(ofSize: 48, weight: .bold)
+        label.textColor = .white
+        vc.view.addSubview(label)
         
         window?.rootViewController = vc
         window?.makeKeyAndVisible()
