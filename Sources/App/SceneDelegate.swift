@@ -7,6 +7,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
         window?.rootViewController = MainTabBarController()
+        window?.backgroundColor = UIColor(hex: "00D4FF")
         window?.makeKeyAndVisible()
     }
 }
