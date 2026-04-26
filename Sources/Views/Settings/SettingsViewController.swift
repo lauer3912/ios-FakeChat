@@ -3,7 +3,7 @@ import UIKit
 class SettingsViewController: UIViewController {
     private let tableView = UITableView(frame: .zero, style: .insetGrouped)
     
-    private struct SettingItem {
+    struct SettingItem {
         let icon: String
         let iconColor: UIColor
         let title: String
@@ -11,7 +11,7 @@ class SettingsViewController: UIViewController {
         let type: SettingType
     }
     
-    private enum SettingType {
+    enum SettingType {
         case toggle(Bool)
         case navigation
         case proBadge
