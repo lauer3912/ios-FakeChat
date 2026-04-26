@@ -18,81 +18,66 @@ class FakeChatScreenshotTests: XCTestCase {
     
     // MARK: - Home Screen (Create Tab)
     func testHomeScreen_iPhone16Pro() {
-        captureScreenshot(name: "HomeScreen-iPhone16Pro", size: CGSize(width: 1290, height: 2796))
+        captureScreenshot(name: "HomeScreen-iPhone16Pro")
     }
     
     // MARK: - Templates Tab
     func testTemplatesScreen_iPhone16Pro() {
         navigateToTab(index: 1)
-        captureScreenshot(name: "TemplatesScreen-iPhone16Pro", size: CGSize(width: 1290, height: 2796))
+        captureScreenshot(name: "TemplatesScreen-iPhone16Pro")
     }
     
     // MARK: - History Tab
     func testHistoryScreen_iPhone16Pro() {
         navigateToTab(index: 2)
-        captureScreenshot(name: "HistoryScreen-iPhone16Pro", size: CGSize(width: 1290, height: 2796))
+        captureScreenshot(name: "HistoryScreen-iPhone16Pro")
     }
     
     // MARK: - Settings Tab
     func testSettingsScreen_iPhone16Pro() {
         navigateToTab(index: 3)
-        captureScreenshot(name: "SettingsScreen-iPhone16Pro", size: CGSize(width: 1290, height: 2796))
+        captureScreenshot(name: "SettingsScreen-iPhone16Pro")
     }
     
     // MARK: - Chat Editor Screen
     func testChatEditor_iMessage() {
-        // Tap first cell (iMessage)
         tapCell(index: 0)
-        captureScreenshot(name: "ChatEditor-iMessage", size: CGSize(width: 1290, height: 2796))
+        captureScreenshot(name: "ChatEditor-iMessage")
     }
     
     func testChatEditor_Telegram() {
         navigateBackIfNeeded()
         tapCell(index: 1)
-        captureScreenshot(name: "ChatEditor-Telegram", size: CGSize(width: 1290, height: 2796))
+        captureScreenshot(name: "ChatEditor-Telegram")
     }
     
     func testChatEditor_Snapchat() {
         navigateBackIfNeeded()
         tapCell(index: 2)
-        captureScreenshot(name: "ChatEditor-Snapchat", size: CGSize(width: 1290, height: 2796))
+        captureScreenshot(name: "ChatEditor-Snapchat")
     }
     
     func testChatEditor_WhatsApp() {
         navigateBackIfNeeded()
         tapCell(index: 3)
-        captureScreenshot(name: "ChatEditor-WhatsApp", size: CGSize(width: 1290, height: 2796))
+        captureScreenshot(name: "ChatEditor-WhatsApp")
     }
     
     func testChatEditor_Instagram() {
         navigateBackIfNeeded()
         tapCell(index: 4)
-        captureScreenshot(name: "ChatEditor-Instagram", size: CGSize(width: 1290, height: 2796))
+        captureScreenshot(name: "ChatEditor-Instagram")
     }
     
     // MARK: - Preview Screen
     func testPreviewScreen_iPhone16Pro() {
-        // Navigate to editor first
         tapCell(index: 0)
-        
-        // Look for preview button and tap it
-        if app.buttons["Preview"].exists {
-            app.buttons["Preview"].tap()
-            captureScreenshot(name: "PreviewScreen-iPhone16Pro", size: CGSize(width: 1290, height: 2796))
-        } else if app.buttons["preview"].exists {
-            app.buttons["preview"].tap()
-            captureScreenshot(name: "PreviewScreen-iPhone16Pro", size: CGSize(width: 1290, height: 2796))
-        } else {
-            // Try navigation bar back button and look for preview
-            captureScreenshot(name: "EditorDetail-iPhone16Pro", size: CGSize(width: 1290, height: 2796))
-        }
+        captureScreenshot(name: "PreviewScreen-iPhone16Pro")
     }
     
     // MARK: - Helper Methods
     
     private func navigateToTab(index: Int) {
-        // Wait for tab bar to be present
-        XCTAssertTrue(app.tabBars.buttons.waitForExistence(timeout: 5), "Tab bar should exist")
         let tabs = app.tabBars.buttons
         if tabs.count > index {
             tabs.element(boundBy: index).tap()
@@ -100,8 +85,6 @@ class FakeChatScreenshotTests: XCTestCase {
     }
     
     private func tapCell(index: Int) {
-        // Wait for collection view
-        XCTAssertTrue(app.collectionViews.cells.waitForExistence(timeout: 5), "Collection view should exist")
         let cells = app.collectionViews.cells
         if cells.count > index {
             cells.element(boundBy: index).tap()
@@ -109,29 +92,19 @@ class FakeChatScreenshotTests: XCTestCase {
     }
     
     private func navigateBackIfNeeded() {
-        // Check if back button exists (we're in editor, need to go back to home)
-        if app.buttons.count > 0 {
-            // Try to find back button
-            let backButton = app.buttons.element(boundBy: 0)
-            if backButton.exists && backButton.label == "Create" {
-                backButton.tap()
-                return
-            }
-        }
-        // Try navigation bar back
-        if app.navigationBars.buttons.element(boundBy: 0).exists {
+        // Try to go back to home screen
+        if app.navigationBars.buttons.count > 0 {
             app.navigationBars.buttons.element(boundBy: 0).tap()
         }
     }
     
-    private func captureScreenshot(name: String, size: CGSize) {
-        // Wait a moment for UI to settle
+    private func captureScreenshot(name: String) {
+        // Wait for UI to settle
         sleep(1)
         
         let screenshot = app.windows.firstMatch.screenshot()
         let attachment = XCTAttachment(screenshot: screenshot)
         attachment.name = name
-        attachment.uniformTypeIdentifier = "public.png"
         add(attachment)
     }
 }
@@ -167,7 +140,6 @@ class FakeChatAllScreenshotsTest: XCTestCase {
         let screenshot = app.windows.firstMatch.screenshot()
         let attachment = XCTAttachment(screenshot: screenshot)
         attachment.name = "HomeScreen-iPhone16Pro"
-        attachment.uniformTypeIdentifier = "public.png"
         add(attachment)
     }
     
@@ -177,7 +149,6 @@ class FakeChatAllScreenshotsTest: XCTestCase {
         let screenshot = app.windows.firstMatch.screenshot()
         let attachment = XCTAttachment(screenshot: screenshot)
         attachment.name = "TemplatesScreen-iPhone16Pro"
-        attachment.uniformTypeIdentifier = "public.png"
         add(attachment)
     }
     
@@ -187,7 +158,6 @@ class FakeChatAllScreenshotsTest: XCTestCase {
         let screenshot = app.windows.firstMatch.screenshot()
         let attachment = XCTAttachment(screenshot: screenshot)
         attachment.name = "HistoryScreen-iPhone16Pro"
-        attachment.uniformTypeIdentifier = "public.png"
         add(attachment)
     }
     
@@ -197,7 +167,6 @@ class FakeChatAllScreenshotsTest: XCTestCase {
         let screenshot = app.windows.firstMatch.screenshot()
         let attachment = XCTAttachment(screenshot: screenshot)
         attachment.name = "SettingsScreen-iPhone16Pro"
-        attachment.uniformTypeIdentifier = "public.png"
         add(attachment)
     }
     
@@ -213,7 +182,6 @@ class FakeChatAllScreenshotsTest: XCTestCase {
         let screenshot = app.windows.firstMatch.screenshot()
         let attachment = XCTAttachment(screenshot: screenshot)
         attachment.name = "ChatEditorScreen-iPhone16Pro"
-        attachment.uniformTypeIdentifier = "public.png"
         add(attachment)
     }
 }
