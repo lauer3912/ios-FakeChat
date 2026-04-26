@@ -124,7 +124,7 @@ class ChatAppCell: UICollectionViewCell {
         nameLabel.text = app.displayName
 
         let gradientLayer = CAGradientLayer()
-        gradientLayer.colors = [app.primaryColor.cgColor, app.primaryColor.opacity(0.7).cgColor]
+        gradientLayer.colors = [app.primaryColor.cgColor, app.primaryColor.withAlphaComponent(0.7).cgColor]
         gradientLayer.startPoint = CGPoint(x: 0, y: 0)
         gradientLayer.endPoint = CGPoint(x: 1, y: 1)
         gradientLayer.frame = CGRect(x: 0, y: 0, width: 200, height: 160)
