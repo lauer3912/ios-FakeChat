@@ -18,61 +18,61 @@ class FakeChatScreenshotTests: XCTestCase {
     
     // MARK: - Home Screen (Create Tab)
     func testHomeScreen_iPhone16Pro() {
-        captureScreenshot(name: "HomeScreen-iPhone16Pro")
+        saveScreenshot(named: "HomeScreen-iPhone16Pro")
     }
     
     // MARK: - Templates Tab
     func testTemplatesScreen_iPhone16Pro() {
         navigateToTab(index: 1)
-        captureScreenshot(name: "TemplatesScreen-iPhone16Pro")
+        saveScreenshot(named: "TemplatesScreen-iPhone16Pro")
     }
     
     // MARK: - History Tab
     func testHistoryScreen_iPhone16Pro() {
         navigateToTab(index: 2)
-        captureScreenshot(name: "HistoryScreen-iPhone16Pro")
+        saveScreenshot(named: "HistoryScreen-iPhone16Pro")
     }
     
     // MARK: - Settings Tab
     func testSettingsScreen_iPhone16Pro() {
         navigateToTab(index: 3)
-        captureScreenshot(name: "SettingsScreen-iPhone16Pro")
+        saveScreenshot(named: "SettingsScreen-iPhone16Pro")
     }
     
-    // MARK: - Chat Editor Screen
+    // MARK: - Chat Editor Screens
     func testChatEditor_iMessage() {
         tapCell(index: 0)
-        captureScreenshot(name: "ChatEditor-iMessage")
+        saveScreenshot(named: "ChatEditor-iMessage")
     }
     
     func testChatEditor_Telegram() {
         navigateBackIfNeeded()
         tapCell(index: 1)
-        captureScreenshot(name: "ChatEditor-Telegram")
+        saveScreenshot(named: "ChatEditor-Telegram")
     }
     
     func testChatEditor_Snapchat() {
         navigateBackIfNeeded()
         tapCell(index: 2)
-        captureScreenshot(name: "ChatEditor-Snapchat")
+        saveScreenshot(named: "ChatEditor-Snapchat")
     }
     
     func testChatEditor_WhatsApp() {
         navigateBackIfNeeded()
         tapCell(index: 3)
-        captureScreenshot(name: "ChatEditor-WhatsApp")
+        saveScreenshot(named: "ChatEditor-WhatsApp")
     }
     
     func testChatEditor_Instagram() {
         navigateBackIfNeeded()
         tapCell(index: 4)
-        captureScreenshot(name: "ChatEditor-Instagram")
+        saveScreenshot(named: "ChatEditor-Instagram")
     }
     
     // MARK: - Preview Screen
     func testPreviewScreen_iPhone16Pro() {
         tapCell(index: 0)
-        captureScreenshot(name: "PreviewScreen-iPhone16Pro")
+        saveScreenshot(named: "PreviewScreen-iPhone16Pro")
     }
     
     // MARK: - Helper Methods
@@ -92,24 +92,36 @@ class FakeChatScreenshotTests: XCTestCase {
     }
     
     private func navigateBackIfNeeded() {
-        // Try to go back to home screen
         if app.navigationBars.buttons.count > 0 {
             app.navigationBars.buttons.element(boundBy: 0).tap()
         }
     }
     
-    private func captureScreenshot(name: String) {
+    private func saveScreenshot(named name: String) {
         // Wait for UI to settle
         sleep(1)
         
         let screenshot = app.windows.firstMatch.screenshot()
+        
+        // Save to desktop with unique name
+        let desktopURL = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first!
+        let screenshotURL = desktopURL.appendingPathComponent("\(name).png")
+        
+        do {
+            try screenshot.pngRepresentation.write(to: screenshotURL)
+            print("Saved screenshot: \(screenshotURL.path)")
+        } catch {
+            print("Failed to save screenshot: \(error)")
+        }
+        
+        // Also add as attachment
         let attachment = XCTAttachment(screenshot: screenshot)
         attachment.name = name
         add(attachment)
     }
 }
 
-// MARK: - Batch Screenshot Test for All Required Screens
+// MARK: - Batch Screenshot Test
 class FakeChatAllScreenshotsTest: XCTestCase {
     
     var app: XCUIApplication!
@@ -123,12 +135,7 @@ class FakeChatAllScreenshotsTest: XCTestCase {
     }
     
     func testGenerateAllScreenshots() {
-        // Required screenshots for App Store:
-        // iPhone 6.9" (1290x2796): 5 screenshots
-        // iPhone 6.5" (1320x2868): 5 screenshots
-        // iPad 12.9" (2048x2732): 3 screenshots
-        
-        // Generate iPhone 16 Pro screenshots
+        // Generate all required screenshots
         captureHomeScreen()
         captureTemplatesScreen()
         captureHistoryScreen()
@@ -137,51 +144,50 @@ class FakeChatAllScreenshotsTest: XCTestCase {
     }
     
     private func captureHomeScreen() {
-        let screenshot = app.windows.firstMatch.screenshot()
-        let attachment = XCTAttachment(screenshot: screenshot)
-        attachment.name = "HomeScreen-iPhone16Pro"
-        add(attachment)
+        saveGlobalScreenshot(named: "HomeScreen-iPhone16Pro")
     }
     
     private func captureTemplatesScreen() {
         app.tabBars.buttons.element(boundBy: 1).tap()
         sleep(1)
-        let screenshot = app.windows.firstMatch.screenshot()
-        let attachment = XCTAttachment(screenshot: screenshot)
-        attachment.name = "TemplatesScreen-iPhone16Pro"
-        add(attachment)
+        saveGlobalScreenshot(named: "TemplatesScreen-iPhone16Pro")
     }
     
     private func captureHistoryScreen() {
         app.tabBars.buttons.element(boundBy: 2).tap()
         sleep(1)
-        let screenshot = app.windows.firstMatch.screenshot()
-        let attachment = XCTAttachment(screenshot: screenshot)
-        attachment.name = "HistoryScreen-iPhone16Pro"
-        add(attachment)
+        saveGlobalScreenshot(named: "HistoryScreen-iPhone16Pro")
     }
     
     private func captureSettingsScreen() {
         app.tabBars.buttons.element(boundBy: 3).tap()
         sleep(1)
-        let screenshot = app.windows.firstMatch.screenshot()
-        let attachment = XCTAttachment(screenshot: screenshot)
-        attachment.name = "SettingsScreen-iPhone16Pro"
-        add(attachment)
+        saveGlobalScreenshot(named: "SettingsScreen-iPhone16Pro")
     }
     
     private func captureEditorScreen() {
-        // Go back to home
         app.tabBars.buttons.element(boundBy: 0).tap()
         sleep(1)
-        
-        // Tap first chat app
         app.collectionViews.cells.element(boundBy: 0).tap()
         sleep(2)
-        
+        saveGlobalScreenshot(named: "ChatEditorScreen-iPhone16Pro")
+    }
+    
+    private func saveGlobalScreenshot(named name: String) {
         let screenshot = app.windows.firstMatch.screenshot()
+        
+        let desktopURL = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first!
+        let screenshotURL = desktopURL.appendingPathComponent("\(name).png")
+        
+        do {
+            try screenshot.pngRepresentation.write(to: screenshotURL)
+            print("Saved screenshot: \(screenshotURL.path)")
+        } catch {
+            print("Failed to save screenshot: \(error)")
+        }
+        
         let attachment = XCTAttachment(screenshot: screenshot)
-        attachment.name = "ChatEditorScreen-iPhone16Pro"
+        attachment.name = name
         add(attachment)
     }
 }
