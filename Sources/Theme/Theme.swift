@@ -137,6 +137,30 @@ struct Design {
     }
 }
 
+// MARK: - Theme alias for backwards compatibility
+struct Theme {
+    static let darkBackground = Design.bgPrimary
+    static let darkSurface = Design.bgSecondary
+    static let darkCard = Design.bgElevated
+    static let accentCyan = Design.cyan
+    static let accentPink = Design.pink
+    static let accentPurple = Design.purple
+    static let accentYellow = Design.yellow
+    static let success = Design.green
+    static let warning = Design.orange
+    static let textSecondary = UIColor(hex: "8E8E93")
+    
+    static let lightBackground = UIColor(hex: "F2F2F7")
+    static let lightSurface = UIColor.white
+    static let lightText = UIColor(hex: "000000")
+    static let lightTextSecondary = UIColor(hex: "3C3C43")
+}
+
+// MARK: - Gradients
+struct ThemeGradients {
+    static let cyanPink = [UIColor(hex: "00D4FF"), UIColor(hex: "FF2D7A")]
+}
+
 // MARK: - AppTheme with Dark/Light
 class AppTheme {
     static let defaults = UserDefaults.standard
