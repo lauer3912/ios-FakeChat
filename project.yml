@@ -1,0 +1,34 @@
+name: FakeChat
+options:
+  bundleIdPrefix: com.ggsheng
+  deploymentTarget:
+    iOS: "15.0"
+  xcodeVersion: "15.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    INFOPLIST_FILE: Sources/App/Info.plist
+    PRODUCT_BUNDLE_IDENTIFIER: com.ggsheng.FakeChat
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    GENERATE_INFOPLIST_FILE: NO
+
+targets:
+  FakeChat:
+    type: application
+    platform: iOS
+    sources:
+      - Sources
+      - Resources
+    settings:
+      base:
+        INFOPLIST_FILE: Sources/App/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.ggsheng.FakeChat
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    entitlements:
+      path: Sources/App/FakeChat.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
