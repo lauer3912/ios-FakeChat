@@ -3,7 +3,7 @@ import UIKit
 class SettingsViewController: UIViewController {
     private let tableView = UITableView(frame: .zero, style: .insetGrouped)
     
-    private struct SettingItem {
+    struct SettingItem {
         let icon: String
         let iconColor: UIColor
         let title: String
