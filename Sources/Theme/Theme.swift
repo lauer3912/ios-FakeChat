@@ -47,7 +47,7 @@ extension UIColor {
 // MARK: - Design System Colors
 struct Design {
     // MARK: - Backgrounds
-    static let bgPrimary = UIColor(hex: "0A0A0F")
+    static let bgPrimary = UIColor(hex: "000000")
     static let bgSecondary = UIColor(hex: "12121A")
     static let bgTertiary = UIColor(hex: "1C1C26")
     static let bgElevated = UIColor(hex: "242430")

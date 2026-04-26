@@ -4,9 +4,6 @@ class TemplatesViewController: UIViewController {
     private var tableView: UITableView!
     private var templates: [ChatTemplate] = []
     
-    private let headerLabel = UILabel()
-    private let subtitleLabel = UILabel()
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -14,53 +11,34 @@ class TemplatesViewController: UIViewController {
     }
     
     private func setupUI() {
-        view.backgroundColor = Design.bgPrimary
+        view.backgroundColor = .black
+        title = "Templates"
         
-        // Header
-        headerLabel.text = "Templates"
-        headerLabel.font = Design.Typography.largeTitle
-        headerLabel.textColor = .white
-        view.addSubview(headerLabel)
-        
-        subtitleLabel.text = "Start with a prank"
-        subtitleLabel.font = Design.Typography.body
-        subtitleLabel.textColor = Design.cyan
-        view.addSubview(subtitleLabel)
-        
-        // Table with inset group style
-        tableView = UITableView(frame: .zero, style: .insetGrouped)
-        tableView.backgroundColor = .clear
+        tableView = UITableView(frame: .zero, style: .plain)
+        tableView.backgroundColor = .black
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(TemplateCell.self, forCellReuseIdentifier: "TemplateCell")
         tableView.separatorStyle = .none
+        tableView.rowHeight = 80
         view.addSubview(tableView)
         
-        headerLabel.translatesAutoresizingMaskIntoConstraints = false
-        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         tableView.translatesAutoresizingMaskIntoConstraints = false
-        
         NSLayoutConstraint.activate([
-            headerLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: Design.Spacing.lg),
-            headerLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Design.Spacing.lg),
-            
-            subtitleLabel.topAnchor.constraint(equalTo: headerLabel.bottomAnchor, constant: Design.Spacing.xs),
-            subtitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Design.Spacing.lg),
-            
-            tableView.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: Design.Spacing.md),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
     
     private func loadTemplates() {
         templates = [
-            createTemplate(title: "Celebrity Roast", subtitle: "Hilarious celebrity comeback", emoji: "😂", color: Design.pink),
-            createTemplate(title: "Boss Prank", subtitle: "Tell your boss you're sick", emoji: "💼", color: Design.orange),
-            createTemplate(title: "Crush Confession", subtitle: "Finally tell them how you feel", emoji: "❤️", color: Design.pink),
-            createTemplate(title: "Group Chat Chaos", subtitle: "Start a chaotic group conversation", emoji: "🎉", color: Design.purple),
-            createTemplate(title: "Mom Pranked", subtitle: "Classic mom prank template", emoji: "😱", color: Design.cyan)
+            createTemplate(title: "Celebrity Roast", subtitle: "Hilarious comeback", emoji: "😂", color: UIColor(hex: "FF2D7A")),
+            createTemplate(title: "Boss Prank", subtitle: "Classic work prank", emoji: "💼", color: UIColor(hex: "FF9F0A")),
+            createTemplate(title: "Crush Confession", subtitle: "Tell them how you feel", emoji: "❤️", color: UIColor(hex: "E1306C")),
+            createTemplate(title: "Group Chaos", subtitle: "Start drama", emoji: "🎉", color: UIColor(hex: "A855F7")),
+            createTemplate(title: "Mom Pranked", subtitle: "Classic comedy", emoji: "😱", color: UIColor(hex: "00D4FF"))
         ]
         tableView.reloadData()
     }
@@ -93,18 +71,13 @@ extension TemplatesViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TemplateCell", for: indexPath) as! TemplateCell
-        cell.configure(with: templates[indexPath.row], index: indexPath.row)
+        cell.configure(with: templates[indexPath.row])
         return cell
-    }
-    
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 90
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         triggerHaptic()
-        
         let template = templates[indexPath.row]
         let editorVC = ChatEditorViewController(chatApp: template.conversation.chatApp)
         navigationController?.pushViewController(editorVC, animated: true)
@@ -112,11 +85,9 @@ extension TemplatesViewController: UITableViewDataSource, UITableViewDelegate {
 }
 
 class TemplateCell: UITableViewCell {
-    private let cardView = UIView()
     private let iconLabel = UILabel()
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
-    private let arrowIcon = UIImageView()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -128,85 +99,52 @@ class TemplateCell: UITableViewCell {
     }
     
     private func setupUI() {
-        backgroundColor = .clear
+        backgroundColor = .black
         selectionStyle = .none
         
-        // Card
-        cardView.backgroundColor = Design.bgSecondary
-        cardView.layer.cornerRadius = Design.Radius.medium
-        contentView.addSubview(cardView)
+        iconLabel.font = .systemFont(ofSize: 28)
+        contentView.addSubview(iconLabel)
         
-        // Icon container
-        let iconContainer = UIView()
-        iconContainer.backgroundColor = Design.glassBg
-        iconContainer.layer.cornerRadius = 22
-        iconContainer.layer.borderWidth = 1
-        iconContainer.layer.borderColor = Design.glassBorder.cgColor
-        cardView.addSubview(iconContainer)
-        
-        // Emoji
-        iconLabel.font = .systemFont(ofSize: 24)
-        iconLabel.textAlignment = .center
-        iconContainer.addSubview(iconLabel)
-        
-        // Title
-        titleLabel.font = Design.Typography.headline
+        titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
         titleLabel.textColor = .white
-        cardView.addSubview(titleLabel)
+        contentView.addSubview(titleLabel)
         
-        // Subtitle
-        subtitleLabel.font = Design.Typography.footnote
-        subtitleLabel.textColor = Design.cyan.withAlphaComponent(0.8)
-        cardView.addSubview(subtitleLabel)
+        subtitleLabel.font = .systemFont(ofSize: 14, weight: .regular)
+        subtitleLabel.textColor = UIColor.white.withAlphaComponent(0.6)
+        contentView.addSubview(subtitleLabel)
         
-        // Arrow
-        arrowIcon.image = UIImage(systemName: "chevron.right")
-        arrowIcon.tintColor = UIColor.white.withAlphaComponent(0.3)
-        cardView.addSubview(arrowIcon)
-        
-        cardView.translatesAutoresizingMaskIntoConstraints = false
-        iconContainer.translatesAutoresizingMaskIntoConstraints = false
         iconLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        arrowIcon.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            cardView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            cardView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            cardView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            cardView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+            iconLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            iconLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            iconLabel.widthAnchor.constraint(equalToConstant: 40),
             
-            iconContainer.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 16),
-            iconContainer.centerYAnchor.constraint(equalTo: cardView.centerYAnchor),
-            iconContainer.widthAnchor.constraint(equalToConstant: 44),
-            iconContainer.heightAnchor.constraint(equalToConstant: 44),
+            titleLabel.leadingAnchor.constraint(equalTo: iconLabel.trailingAnchor, constant: 16),
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
             
-            iconLabel.centerXAnchor.constraint(equalTo: iconContainer.centerXAnchor),
-            iconLabel.centerYAnchor.constraint(equalTo: iconContainer.centerYAnchor),
-            
-            titleLabel.leadingAnchor.constraint(equalTo: iconContainer.trailingAnchor, constant: 14),
-            titleLabel.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 20),
-            titleLabel.trailingAnchor.constraint(equalTo: arrowIcon.leadingAnchor, constant: -12),
-            
-            subtitleLabel.leadingAnchor.constraint(equalTo: iconContainer.trailingAnchor, constant: 14),
-            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
-            subtitleLabel.trailingAnchor.constraint(equalTo: arrowIcon.leadingAnchor, constant: -12),
-            
-            arrowIcon.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -16),
-            arrowIcon.centerYAnchor.constraint(equalTo: cardView.centerYAnchor),
-            arrowIcon.widthAnchor.constraint(equalToConstant: 12),
-            arrowIcon.heightAnchor.constraint(equalToConstant: 16)
+            subtitleLabel.leadingAnchor.constraint(equalTo: iconLabel.trailingAnchor, constant: 16),
+            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4)
         ])
-        
-        Design.Shadows.apply(to: cardView.layer, color: .black, opacity: 0.3, radius: 15, offset: CGSize(width: 0, height: 5))
     }
     
-    func configure(with template: ChatTemplate, index: Int) {
+    func configure(with template: ChatTemplate) {
         titleLabel.text = template.title
         subtitleLabel.text = template.subtitle
         
-        let emojis = ["😂", "💼", "❤️", "🎉", "😱"]
-        iconLabel.text = emojis[index % emojis.count]
+        // Extract emoji from title or use default
+        if template.title.contains("Celebrity") {
+            iconLabel.text = "😂"
+        } else if template.title.contains("Boss") {
+            iconLabel.text = "💼"
+        } else if template.title.contains("Crush") {
+            iconLabel.text = "❤️"
+        } else if template.title.contains("Group") {
+            iconLabel.text = "🎉"
+        } else {
+            iconLabel.text = "😱"
+        }
     }
 }

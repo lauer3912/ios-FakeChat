@@ -1,8 +1,6 @@
 import UIKit
 
 class MainTabBarController: UITabBarController {
-    private let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTabs()
@@ -11,44 +9,36 @@ class MainTabBarController: UITabBarController {
     
     private func setupTabs() {
         let homeVC = UINavigationController(rootViewController: HomeViewController())
-        homeVC.tabBarItem = UITabBarItem(title: "Create", image: UIImage(systemName: "plus.circle"), tag: 0)
+        homeVC.tabBarItem = UITabBarItem(title: "Create", image: UIImage(systemName: "plus.circle.fill"), tag: 0)
         
         let templatesVC = UINavigationController(rootViewController: TemplatesViewController())
-        templatesVC.tabBarItem = UITabBarItem(title: "Templates", image: UIImage(systemName: "square.grid.2x2"), tag: 1)
+        templatesVC.tabBarItem = UITabBarItem(title: "Templates", image: UIImage(systemName: "rectangle.grid.2x2.fill"), tag: 1)
         
         let historyVC = UINavigationController(rootViewController: HistoryViewController())
-        historyVC.tabBarItem = UITabBarItem(title: "History", image: UIImage(systemName: "clock"), tag: 2)
+        historyVC.tabBarItem = UITabBarItem(title: "History", image: UIImage(systemName: "clock.fill"), tag: 2)
         
         let settingsVC = UINavigationController(rootViewController: SettingsViewController())
-        settingsVC.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gear"), tag: 3)
+        settingsVC.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gearshape.fill"), tag: 3)
         
         viewControllers = [homeVC, templatesVC, historyVC, settingsVC]
     }
     
     private func setupAppearance() {
-        // Tab bar blur background
-        tabBar.backgroundColor = .clear
-        tabBar.insertSubview(blurView, at: 0)
-        blurView.frame = tabBar.bounds
-        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        
-        // Tint color
-        tabBar.tintColor = Design.cyan
+        view.backgroundColor = .black
+        tabBar.backgroundColor = UIColor(hex: "0A0A0A")
+        tabBar.barTintColor = UIColor(hex: "0A0A0A")
+        tabBar.tintColor = .white
         tabBar.unselectedItemTintColor = UIColor.white.withAlphaComponent(0.5)
+        tabBar.isTranslucent = false
         
         if #available(iOS 15.0, *) {
             let appearance = UITabBarAppearance()
-            appearance.configureWithTransparentBackground()
-            appearance.backgroundColor = .clear
-            
-            // Selected state
-            appearance.stackedLayoutAppearance.selected.iconColor = Design.cyan
-            appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: Design.cyan]
-            
-            // Normal state
+            appearance.configureWithOpaqueBackground()
+            appearance.backgroundColor = UIColor(hex: "0A0A0A")
             appearance.stackedLayoutAppearance.normal.iconColor = UIColor.white.withAlphaComponent(0.5)
             appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.white.withAlphaComponent(0.5)]
-            
+            appearance.stackedLayoutAppearance.selected.iconColor = .white
+            appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: .white]
             tabBar.standardAppearance = appearance
             tabBar.scrollEdgeAppearance = appearance
         }

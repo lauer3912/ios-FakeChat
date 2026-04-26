@@ -4,102 +4,36 @@ class HomeViewController: UIViewController {
     private var collectionView: UICollectionView!
     private var chatApps = ChatApp.allCases
     
-    private let headerLabel = UILabel()
-    private let subtitleLabel = UILabel()
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        setupGradientBackground()
-    }
-    
-    private func setupGradientBackground() {
-        let gradientLayer = CAGradientLayer()
-        gradientLayer.colors = [
-            Design.bgPrimary.cgColor,
-            Design.bgSecondary.cgColor,
-            Design.bgPrimary.cgColor
-        ]
-        gradientLayer.locations = [0, 0.5, 1]
-        gradientLayer.frame = view.bounds
-        view.layer.insertSublayer(gradientLayer, at: 0)
     }
     
     private func setupUI() {
-        // Title
-        headerLabel.text = "Create"
-        headerLabel.font = Design.Typography.largeTitle
-        headerLabel.textColor = .white
-        headerLabel.alpha = 0
-        view.addSubview(headerLabel)
+        view.backgroundColor = .black
+        title = ""
         
-        // Subtitle
-        subtitleLabel.text = "Choose your chat app"
-        subtitleLabel.font = Design.Typography.body
-        subtitleLabel.textColor = Design.cyan
-        subtitleLabel.alpha = 0
-        view.addSubview(subtitleLabel)
+        // Collection with full width cards
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .vertical
+        layout.minimumLineSpacing = 20
+        layout.sectionInset = UIEdgeInsets(top: 20, left: 0, bottom: 20, right: 0)
         
-        // Layout
-        let layout = createLayout()
-        
-        collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout())
-        collectionView.backgroundColor = .clear
+        collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.backgroundColor = .black
         collectionView.delegate = self
         collectionView.dataSource = self
-        collectionView.register(AppCell.self, forCellWithReuseIdentifier: "AppCell")
-        collectionView.alpha = 0
+        collectionView.register(ChatAppCardCell.self, forCellWithReuseIdentifier: "ChatAppCardCell")
+        collectionView.showsVerticalScrollIndicator = false
         view.addSubview(collectionView)
         
-        headerLabel.translatesAutoresizingMaskIntoConstraints = false
-        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         collectionView.translatesAutoresizingMaskIntoConstraints = false
-        
         NSLayoutConstraint.activate([
-            headerLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: Design.Spacing.lg),
-            headerLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Design.Spacing.lg),
-            
-            subtitleLabel.topAnchor.constraint(equalTo: headerLabel.bottomAnchor, constant: Design.Spacing.xs),
-            subtitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Design.Spacing.lg),
-            
-            collectionView.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: Design.Spacing.lg),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Design.Spacing.md),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Design.Spacing.md),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -Design.Spacing.lg)
+            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
-        
-        // Animate in
-        animateIn()
-    }
-    
-    private func createLayout() -> UICollectionViewCompositionalLayout {
-        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5), heightDimension: .absolute(180))
-        let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        item.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
-        
-        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(180))
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item, item])
-        
-        let section = NSCollectionLayoutSection(group: group)
-        section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 20, trailing: 0)
-        
-        return UICollectionViewCompositionalLayout(section: section)
-    }
-    
-    private func animateIn() {
-        UIView.animate(withDuration: 0.6, delay: 0, options: .curveEaseOut) {
-            self.headerLabel.alpha = 1
-            self.subtitleLabel.alpha = 1
-            self.collectionView.alpha = 1
-        }
-        
-        // Staggered cell animation
-        for (index, _) in chatApps.enumerated() {
-            let delay = 0.1 + Double(index) * 0.05
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                self.collectionView.reloadItems(at: [IndexPath(item: index, section: 0)])
-            }
-        }
     }
     
     private func triggerHaptic() {
@@ -110,47 +44,38 @@ class HomeViewController: UIViewController {
     }
 }
 
-extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelegate {
+extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return chatApps.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "AppCell", for: indexPath) as! AppCell
-        let app = chatApps[indexPath.item]
-        cell.configure(with: app, isLight: false)
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ChatAppCardCell", for: indexPath) as! ChatAppCardCell
+        cell.configure(with: chatApps[indexPath.item], index: indexPath.item)
         return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let width = collectionView.bounds.width
+        return CGSize(width: width, height: 120)
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         triggerHaptic()
-        
-        // Scale animation
-        if let cell = collectionView.cellForItem(at: indexPath) {
-            UIView.animate(withDuration: 0.1, animations: {
-                cell.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
-            }) { _ in
-                UIView.animate(withDuration: 0.1) {
-                    cell.transform = .identity
-                }
-            }
-        }
-        
         let app = chatApps[indexPath.item]
         let editorVC = ChatEditorViewController(chatApp: app)
         navigationController?.pushViewController(editorVC, animated: true)
     }
 }
 
-// MARK: - Premium App Cell with Glass Effect
-class AppCell: UICollectionViewCell {
+// MARK: - Chat App Card Cell (TikTok/Instagram Style)
+class ChatAppCardCell: UICollectionViewCell {
     private let containerView = UIView()
+    private let iconView = UIImageView()
+    private let appNameLabel = UILabel()
+    private let descriptionLabel = UILabel()
+    private let chevronView = UIImageView()
     private let gradientLayer = CAGradientLayer()
-    private let iconContainer = UIView()
-    private let iconImageView = UIImageView()
-    private let nameLabel = UILabel()
-    private let checkmarkView = UIImageView()
-    private let glowLayer = CALayer()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -164,48 +89,39 @@ class AppCell: UICollectionViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         gradientLayer.frame = containerView.bounds
-        glowLayer.frame = containerView.bounds
     }
     
     private func setupUI() {
-        // Glow layer
-        glowLayer.backgroundColor = UIColor.clear.cgColor
-        containerView.layer.insertSublayer(glowLayer, at: 0)
-        
-        // Gradient container
-        containerView.layer.cornerRadius = Design.Radius.large
+        containerView.layer.cornerRadius = 16
         containerView.clipsToBounds = true
         contentView.addSubview(containerView)
         
-        // Icon container with glass effect
-        iconContainer.backgroundColor = Design.glassBg
-        iconContainer.layer.cornerRadius = 25
-        iconContainer.layer.borderWidth = 1
-        iconContainer.layer.borderColor = Design.glassBorder.cgColor
-        containerView.addSubview(iconContainer)
-        
         // Icon
-        iconImageView.contentMode = .scaleAspectFit
-        iconImageView.tintColor = .white
-        iconContainer.addSubview(iconImageView)
+        iconView.contentMode = .scaleAspectFit
+        iconView.tintColor = .white
+        containerView.addSubview(iconView)
         
-        // Name
-        nameLabel.font = Design.Typography.headline
-        nameLabel.textColor = .white
-        nameLabel.textAlignment = .center
-        containerView.addSubview(nameLabel)
+        // App Name
+        appNameLabel.font = .systemFont(ofSize: 22, weight: .bold)
+        appNameLabel.textColor = .white
+        containerView.addSubview(appNameLabel)
         
-        // Checkmark for Pro
-        checkmarkView.image = UIImage(systemName: "checkmark.circle.fill")
-        checkmarkView.tintColor = Design.cyan
-        checkmarkView.isHidden = true
-        containerView.addSubview(checkmarkView)
+        // Description
+        descriptionLabel.font = .systemFont(ofSize: 14, weight: .regular)
+        descriptionLabel.textColor = UIColor.white.withAlphaComponent(0.7)
+        containerView.addSubview(descriptionLabel)
+        
+        // Chevron
+        chevronView.image = UIImage(systemName: "chevron.right")
+        chevronView.tintColor = UIColor.white.withAlphaComponent(0.5)
+        chevronView.contentMode = .scaleAspectFit
+        containerView.addSubview(chevronView)
         
         containerView.translatesAutoresizingMaskIntoConstraints = false
-        iconContainer.translatesAutoresizingMaskIntoConstraints = false
-        iconImageView.translatesAutoresizingMaskIntoConstraints = false
-        nameLabel.translatesAutoresizingMaskIntoConstraints = false
-        checkmarkView.translatesAutoresizingMaskIntoConstraints = false
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+        appNameLabel.translatesAutoresizingMaskIntoConstraints = false
+        descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
+        chevronView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor),
@@ -213,60 +129,92 @@ class AppCell: UICollectionViewCell {
             containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             
-            iconContainer.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
-            iconContainer.centerYAnchor.constraint(equalTo: containerView.centerYAnchor, constant: -15),
-            iconContainer.widthAnchor.constraint(equalToConstant: 50),
-            iconContainer.heightAnchor.constraint(equalToConstant: 50),
+            iconView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
+            iconView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            iconView.widthAnchor.constraint(equalToConstant: 44),
+            iconView.heightAnchor.constraint(equalToConstant: 44),
             
-            iconImageView.centerXAnchor.constraint(equalTo: iconContainer.centerXAnchor),
-            iconImageView.centerYAnchor.constraint(equalTo: iconContainer.centerYAnchor),
-            iconImageView.widthAnchor.constraint(equalToConstant: 28),
-            iconImageView.heightAnchor.constraint(equalToConstant: 28),
+            appNameLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 16),
+            appNameLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 32),
+            appNameLabel.trailingAnchor.constraint(equalTo: chevronView.leadingAnchor, constant: -12),
             
-            nameLabel.topAnchor.constraint(equalTo: iconContainer.bottomAnchor, constant: 12),
-            nameLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 8),
-            nameLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -8),
+            descriptionLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 16),
+            descriptionLabel.topAnchor.constraint(equalTo: appNameLabel.bottomAnchor, constant: 4),
+            descriptionLabel.trailingAnchor.constraint(equalTo: chevronView.leadingAnchor, constant: -12),
             
-            checkmarkView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
-            checkmarkView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
-            checkmarkView.widthAnchor.constraint(equalToConstant: 24),
-            checkmarkView.heightAnchor.constraint(equalToConstant: 24)
+            chevronView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
+            chevronView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            chevronView.widthAnchor.constraint(equalToConstant: 14),
+            chevronView.heightAnchor.constraint(equalToConstant: 20)
         ])
         
-        // Shadow
-        Design.Shadows.apply(to: containerView.layer, color: Design.cyan, opacity: 0.3, radius: 30, offset: CGSize(width: 0, height: 15))
+        // Add shadow to content view (not container)
+        contentView.layer.shadowColor = UIColor.black.cgColor
+        contentView.layer.shadowOpacity = 0.3
+        contentView.layer.shadowRadius = 10
+        contentView.layer.shadowOffset = CGSize(width: 0, height: 5)
     }
     
-    func configure(with app: ChatApp, isLight: Bool) {
-        nameLabel.text = app.displayName
+    func configure(with app: ChatApp, index: Int) {
+        appNameLabel.text = app.displayName
         
-        // Set gradient colors based on app
-        gradientLayer.colors = Design.Gradients.forApp(app)
+        // Description for each app
+        let descriptions = [
+            "Blue bubbles • iOS Messages",
+            "Secret chats • Cloud sync",
+            "Snaps disappear • Filters",
+            "End to end encryption",
+            "Stories & Reactions",
+            "Real-time updates",
+            "Servers & Roles"
+        ]
+        descriptionLabel.text = descriptions[index % descriptions.count]
+        
+        // App-specific icon
+        let symbolName: String
+        let gradientColors: [CGColor]
+        
+        switch app {
+        case .iMessage:
+            symbolName = "message.fill"
+            gradientColors = [UIColor(hex: "007AFF").cgColor, UIColor(hex: "5856D6").cgColor]
+        case .telegram:
+            symbolName = "paperplane.fill"
+            gradientColors = [UIColor(hex: "0088CC").cgColor, UIColor(hex: "00D4FF").cgColor]
+        case .snapchat:
+            symbolName = "camera.fill"
+            gradientColors = [UIColor(hex: "FFFC00").cgColor, UIColor(hex: "FF2D7A").cgColor]
+        case .whatsapp:
+            symbolName = "phone.fill"
+            gradientColors = [UIColor(hex: "25D366").cgColor, UIColor(hex: "128C7E").cgColor]
+        case .instagramDM:
+            symbolName = "camera.fill"
+            gradientColors = [UIColor(hex: "E1306C").cgColor, UIColor(hex: "F77737").cgColor]
+        case .twitterX:
+            symbolName = "at"
+            gradientColors = [UIColor(hex: "FFFFFF").cgColor, UIColor(hex: "8E8E93").cgColor]
+        case .discord:
+            symbolName = "bubble.left.and.bubble.right.fill"
+            gradientColors = [UIColor(hex: "5865F2").cgColor, UIColor(hex: "7289DA").cgColor]
+        }
+        
+        iconView.image = UIImage(systemName: symbolName)
+        
+        // Gradient
+        gradientLayer.colors = gradientColors
         gradientLayer.startPoint = CGPoint(x: 0, y: 0)
         gradientLayer.endPoint = CGPoint(x: 1, y: 1)
         containerView.layer.insertSublayer(gradientLayer, at: 0)
         
-        // Icon
-        let symbolName: String
-        switch app {
-        case .iMessage: symbolName = "message.fill"
-        case .telegram: symbolName = "paperplane.fill"
-        case .snapchat: symbolName = "camera.fill"
-        case .whatsapp: symbolName = "phone.fill"
-        case .instagramDM: symbolName = "camera.fill"
-        case .twitterX: symbolName = "at"
-        case .discord: symbolName = "bubble.left.and.bubble.right.fill"
-        }
-        iconImageView.image = UIImage(systemName: symbolName)
-        
-        // Glow
-        glowLayer.backgroundColor = UIColor.clear.cgColor
-        Design.Shadows.glow(to: containerView.layer, color: app.primaryColor, radius: 40)
+        // Subtle shadow color matching gradient
+        contentView.layer.shadowColor = app.primaryColor.cgColor
+        contentView.layer.shadowOpacity = 0.3
+        contentView.layer.shadowRadius = 15
+        contentView.layer.shadowOffset = CGSize(width: 0, height: 8)
     }
     
     override func prepareForReuse() {
         super.prepareForReuse()
         gradientLayer.removeFromSuperlayer()
-        containerView.layer.shadowOpacity = 0
     }
 }
