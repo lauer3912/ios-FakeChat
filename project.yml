@@ -1,63 +1,128 @@
-name: FakeChat
+# ══════════════════════════════════════════════════════════════
+# ChatFaker - XcodeGen 项目配置
+# ══════════════════════════════════════════════════════════════
+
+name: ChatFaker
 options:
   bundleIdPrefix: com.ggsheng
   deploymentTarget:
-    iOS: "15.0"
+    iOS: "17.0"
   xcodeVersion: "15.0"
+  generateEmptyDirectories: true
+
+# ══════════════════════════════════════════════════════════════
+# 全局构建设置
+# ══════════════════════════════════════════════════════════════
 
 settings:
   base:
     SWIFT_VERSION: "5.9"
-    TARGETED_DEVICE_FAMILY: "1,2"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGN_STYLE: Automatic
     DEVELOPMENT_TEAM: "9L6N2ZF26B"
-    CODE_SIGN_STYLE: Manual
-    CODE_SIGN_IDENTITY: "Apple Distribution: ZhiFeng Sun (9L6N2ZF26B)"
-    CODE_SIGNING_REQUIRED: "YES"
-    INFOPLIST_FILE: Sources/App/Info.plist
-    PRODUCT_BUNDLE_IDENTIFIER: com.ggsheng.FakeChat
-    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-    GENERATE_INFOPLIST_FILE: NO
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+
+# ══════════════════════════════════════════════════════════════
+# Target: ChatFaker 主应用
+# ══════════════════════════════════════════════════════════════
 
 targets:
-  FakeChat:
+  ChatFaker:
     type: application
     platform: iOS
     sources:
-      - Sources
-      - Resources
+      - path: Sources
+        excludes:
+          - "**/.DS_Store"
+      - path: Resources
+        excludes:
+          - "**/.DS_Store"
     settings:
       base:
         INFOPLIST_FILE: Sources/App/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.ggsheng.FakeChat
+        PRODUCT_NAME: ChatFaker
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        GENERATE_INFOPLIST_FILE: NO
+        SWIFT_EMIT_LOC_STRINGS: YES
+        CODE_SIGN_ENTITLEMENTS: Sources/App/ChatFaker.entitlements
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 9L6N2ZF26B
+        CODE_SIGNING_ALLOWED: NO
+      configs:
+        Debug:
+          CODE_SIGNING_ALLOWED: NO
+        Release:
+          CODE_SIGNING_ALLOWED: YES
     entitlements:
-      path: Sources/App/FakeChat.entitlements
-      properties:
-        com.apple.security.app-sandbox: true
+      path: Sources/App/ChatFaker.entitlements
+    dependencies: []
 
-  FakeChatUITests:
+# ══════════════════════════════════════════════════════════════
+# Target: ChatFaker Unit Tests
+# ══════════════════════════════════════════════════════════════
+
+  ChatFakerTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: ChatFakerTests
+        excludes:
+          - "**/.DS_Store"
+    dependencies:
+      - target: ChatFaker
+    settings:
+      base:
+        INFOPLIST_FILE: ChatFakerTests/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.ggsheng.FakeChatTests
+        PRODUCT_NAME: ChatFakerTests
+        GENERATE_INFOPLIST_FILE: NO
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/ChatFaker.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ChatFaker"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 9L6N2ZF26B
+
+# ══════════════════════════════════════════════════════════════
+# Target: ChatFaker UI Tests
+# ══════════════════════════════════════════════════════════════
+
+  ChatFakerUITests:
     type: bundle.ui-testing
     platform: iOS
     sources:
-      - FakeChatUITests
+      - path: FakeChatUITests
+        excludes:
+          - "**/.DS_Store"
     dependencies:
-      - target: FakeChat
+      - target: ChatFaker
     settings:
       base:
+        INFOPLIST_FILE: FakeChatUITests/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.ggsheng.FakeChat.UITests
-        TEST_TARGET_NAME: FakeChat
+        PRODUCT_NAME: ChatFakerUITests
+        GENERATE_INFOPLIST_FILE: NO
+        TEST_TARGET: "$(BUILT_PRODUCTS_DIR)/ChatFaker.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ChatFaker"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 9L6N2ZF26B
+
+# ══════════════════════════════════════════════════════════════
+# Schemes
+# ══════════════════════════════════════════════════════════════
 
 schemes:
-  FakeChat:
+  ChatFaker:
     build:
       targets:
-        FakeChat: all
+        ChatFaker: all
+        ChatFakerUITests: [test]
     run:
       config: Debug
     test:
       config: Debug
       targets:
-        - FakeChatUITests
+        - ChatFakerUITests
     profile:
       config: Release
     analyze:

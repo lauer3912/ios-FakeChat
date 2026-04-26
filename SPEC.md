@@ -1,8 +1,9 @@
-# FakeChat — Specification Document
+# ChatFaker — Specification Document
 
 ## 1. Project Overview
 
-- **Project Name**: FakeChat
+- **Project Name**: ChatFaker
+- **App Store Name**: ChatFaker
 - **Bundle ID**: com.ggsheng.FakeChat
 - **Core Functionality**: Generate realistic fake chat screenshots for iMessage, Telegram, Snapchat, WhatsApp, Instagram DM, Twitter/X, Discord. Used for pranks, social media content, and entertainment.
 - **Target Users**: Teens and young adults (13-25) in Western markets (US, UK, Canada, Australia)

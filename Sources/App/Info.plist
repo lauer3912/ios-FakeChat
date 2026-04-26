@@ -5,7 +5,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>FakeChat</string>
+    <string>ChatFaker</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -15,11 +15,11 @@
     <key>CFBundleName</key>
     <string>$(PRODUCT_NAME)</string>
     <key>CFBundlePackageType</key>
-    <string>APPL</string>
+    <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
+    <string>$(MARKETING_VERSION)</string>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>$(CURRENT_PROJECT_VERSION)</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>UIApplicationSceneManifest</key>
@@ -46,7 +46,7 @@
     </dict>
     <key>UIRequiredDeviceCapabilities</key>
     <array>
-        <string>armv7</string>
+        <string>arm64</string>
     </array>
     <key>UISupportedInterfaceOrientations</key>
     <array>
@@ -62,8 +62,8 @@
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
     <key>NSPhotoLibraryUsageDescription</key>
-    <string>FakeChat needs access to your photo library to let you select custom avatars and wallpapers.</string>
+    <string>ChatFaker needs access to your photo library to let you select custom avatars and wallpapers.</string>
     <key>NSCameraUsageDescription</key>
-    <string>FakeChat needs camera access to take photos for custom avatars.</string>
+    <string>ChatFaker needs camera access to take photos for custom avatars.</string>
 </dict>
 </plist>
