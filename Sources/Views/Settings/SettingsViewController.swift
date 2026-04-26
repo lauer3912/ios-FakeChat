@@ -11,7 +11,7 @@ class SettingsViewController: UIViewController {
         let type: SettingType
     }
     
-    private enum SettingType {
+    enum SettingType {
         case toggle(Bool)
         case navigation(String)
         case proBadge
