@@ -24,14 +24,14 @@ class MainTabBarController: UITabBarController {
     }
 
     private func setupAppearance() {
-        tabBar.tintColor = UIColor(Theme.accentCyan)
-        tabBar.backgroundColor = UIColor(AppTheme.surface)
-        tabBar.unselectedItemTintColor = UIColor(AppTheme.textSecondary)
+        tabBar.tintColor = Theme.accentCyan
+        tabBar.backgroundColor = AppTheme.surface
+        tabBar.unselectedItemTintColor = AppTheme.textSecondary
 
         if #available(iOS 15.0, *) {
             let appearance = UITabBarAppearance()
             appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor = UIColor(AppTheme.surface)
+            appearance.backgroundColor = AppTheme.surface
             tabBar.standardAppearance = appearance
             tabBar.scrollEdgeAppearance = appearance
         }

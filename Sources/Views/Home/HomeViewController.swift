@@ -14,8 +14,8 @@ class HomeViewController: UIViewController {
         view.backgroundColor = AppTheme.background
 
         navigationController?.navigationBar.prefersLargeTitles = true
-        navigationController?.navigationBar.titleTextAttributes = [.foregroundColor: UIColor(AppTheme.textPrimary)]
-        navigationController?.navigationBar.largeTitleTextAttributes = [.foregroundColor: UIColor(AppTheme.textPrimary)]
+        navigationController?.navigationBar.titleTextAttributes = [.foregroundColor: AppTheme.textPrimary]
+        navigationController?.navigationBar.largeTitleTextAttributes = [.foregroundColor: AppTheme.textPrimary]
 
         let layout = UICollectionViewCompositionalLayout { _, _ in
             let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5), heightDimension: .absolute(160))
