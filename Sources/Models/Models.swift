@@ -1,18 +1,39 @@
 import UIKit
 
-enum ChatApp: String, CaseIterable, Identifiable {
-    case iMessage = "iMessage"
-    case telegram = "Telegram"
-    case snapchat = "Snapchat"
-    case whatsapp = "WhatsApp"
-    case instagramDM = "Instagram"
-    case twitterX = "X"
-    case discord = "Discord"
-
-    var id: String { rawValue }
-
-    var displayName: String { rawValue }
-
+// MARK: - Chat App Types
+enum ChatApp: String, CaseIterable, Codable {
+    case iMessage
+    case telegram
+    case snapchat
+    case whatsapp
+    case instagramDM
+    case twitterX
+    case discord
+    
+    var displayName: String {
+        switch self {
+        case .iMessage: return "iMessage"
+        case .telegram: return "Telegram"
+        case .snapchat: return "Snapchat"
+        case .whatsapp: return "WhatsApp"
+        case .instagramDM: return "Instagram"
+        case .twitterX: return "Twitter/X"
+        case .discord: return "Discord"
+        }
+    }
+    
+    var iconName: String {
+        switch self {
+        case .iMessage: return "message.fill"
+        case .telegram: return "paperplane.fill"
+        case .snapchat: return "camera.fill"
+        case .whatsapp: return "phone.fill"
+        case .instagramDM: return "camera.fill"
+        case .twitterX: return "at"
+        case .discord: return "bubble.left.and.bubble.right.fill"
+        }
+    }
+    
     var primaryColor: UIColor {
         switch self {
         case .iMessage: return UIColor(hex: "007AFF")
@@ -20,78 +41,57 @@ enum ChatApp: String, CaseIterable, Identifiable {
         case .snapchat: return UIColor(hex: "FFFC00")
         case .whatsapp: return UIColor(hex: "25D366")
         case .instagramDM: return UIColor(hex: "E1306C")
-        case .twitterX: return .white
+        case .twitterX: return UIColor.white
         case .discord: return UIColor(hex: "5865F2")
         }
     }
-
-    var bubbleReceivedColor: UIColor {
+    
+    var secondaryColor: UIColor {
         switch self {
-        case .iMessage: return UIColor(hex: "E9E9EB")
-        case .telegram: return UIColor(hex: "0088CC")
-        case .snapchat: return .white
-        case .whatsapp: return UIColor(hex: "DCF8C6")
-        case .instagramDM: return UIColor(hex: "262626")
-        case .twitterX: return .black
-        case .discord: return UIColor(hex: "363636")
+        case .iMessage: return UIColor(hex: "5856D6")
+        case .telegram: return UIColor(hex: "00D4FF")
+        case .snapchat: return UIColor(hex: "FF2D7A")
+        case .whatsapp: return UIColor(hex: "128C7E")
+        case .instagramDM: return UIColor(hex: "F77737")
+        case .twitterX: return UIColor(hex: "888888")
+        case .discord: return UIColor(hex: "7289DA")
         }
     }
-
-    var bubbleSentColor: UIColor {
+    
+    var description: String {
         switch self {
-        case .iMessage: return UIColor(hex: "007AFF")
-        case .telegram: return UIColor(hex: "EFFDDE")
-        case .snapchat: return .white
-        case .whatsapp: return UIColor(hex: "DCF8C6")
-        case .instagramDM: return UIColor(hex: "262626")
-        case .twitterX: return .black
-        case .discord: return UIColor(hex: "4752C4")
-        }
-    }
-
-    var isDarkBackground: Bool {
-        switch self {
-        case .iMessage: return false
-        case .telegram: return false
-        case .snapchat: return true
-        case .whatsapp: return false
-        case .instagramDM: return true
-        case .twitterX: return true
-        case .discord: return true
-        }
-    }
-
-    var chatBackgroundColor: UIColor {
-        switch self {
-        case .iMessage: return .white
-        case .telegram: return .white
-        case .snapchat: return .black
-        case .whatsapp: return UIColor(hex: "ECE5DD")
-        case .instagramDM: return .black
-        case .twitterX: return .black
-        case .discord: return UIColor(hex: "36393F")
+        case .iMessage: return "Blue bubbles • iOS native"
+        case .telegram: return "Secret chats • Cloud sync"
+        case .snapchat: return "Snaps • Filters • Stories"
+        case .whatsapp: return "End-to-end encryption"
+        case .instagramDM: return "Stories • Reactions"
+        case .twitterX: return "Real-time updates"
+        case .discord: return "Servers • Roles"
         }
     }
 }
 
-enum MessageStatus: String, Codable {
-    case sent = "Sent"
-    case delivered = "Delivered"
-    case read = "Read"
-}
-
+// MARK: - Avatar Type
 enum AvatarType: Codable, Equatable {
     case emoji(String)
-    case image(String)
+    case image(String) // filename or asset name
+    
+    var display: String {
+        switch self {
+        case .emoji(let e): return e
+        case .image: return "👤"
+        }
+    }
 }
 
-struct Contact: Identifiable, Codable, Equatable {
+// MARK: - Contact Model
+struct Contact: Codable, Identifiable, Equatable {
     let id: UUID
     var name: String
     var avatar: AvatarType
     var isOnline: Bool
     var lastSeen: Date?
-
+    
     init(id: UUID = UUID(), name: String, avatar: AvatarType = .emoji("😊"), isOnline: Bool = false, lastSeen: Date? = nil) {
         self.id = id
         self.name = name
@@ -99,16 +99,34 @@ struct Contact: Identifiable, Codable, Equatable {
         self.isOnline = isOnline
         self.lastSeen = lastSeen
     }
+    
+    var lastSeenText: String {
+        if isOnline { return "online" }
+        guard let lastSeen = lastSeen else { return "offline" }
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .short
+        return "last seen " + formatter.localizedString(for: lastSeen, relativeTo: Date())
+    }
 }
 
-struct Message: Identifiable, Codable, Equatable {
+// MARK: - Message Status
+enum MessageStatus: String, Codable {
+    case sending
+    case sent
+    case delivered
+    case read
+    case failed
+}
+
+// MARK: - Message Model
+struct Message: Codable, Identifiable, Equatable {
     let id: UUID
-    var senderId: UUID
-    var text: String
-    var timestamp: Date
+    let senderId: UUID
+    let text: String
+    let timestamp: Date
     var status: MessageStatus
     var reactions: [String]
-
+    
     init(id: UUID = UUID(), senderId: UUID, text: String, timestamp: Date = Date(), status: MessageStatus = .sent, reactions: [String] = []) {
         self.id = id
         self.senderId = senderId
@@ -117,56 +135,128 @@ struct Message: Identifiable, Codable, Equatable {
         self.status = status
         self.reactions = reactions
     }
+    
+    var isSentByMe: Bool {
+        return senderId == currentUserId
+    }
+    
+    static var currentUserId: UUID = UUID()
 }
 
-struct Conversation: Identifiable, Codable {
+// MARK: - Wallpaper Type
+enum WallpaperType: String, Codable, CaseIterable {
+    case `default`
+    case gradient1
+    case gradient2
+    case gradient3
+    case gradient4
+    case gradient5
+    case gradient6
+    case gradient7
+    case gradient8
+    case gradient9
+    case gradient10
+    
+    var displayName: String {
+        switch self {
+        case .default: return "Default"
+        case .gradient1: return "Midnight"
+        case .gradient2: return "Ocean"
+        case .gradient3: return "Sunset"
+        case .gradient4: return "Forest"
+        case .gradient5: return "Lavender"
+        case .gradient6: return "Peach"
+        case .gradient7: return "Mint"
+        case .gradient8: return "Rose"
+        case .gradient9: return "Sky"
+        case .gradient10: return "Coal"
+        }
+    }
+}
+
+// MARK: - Conversation Model
+struct Conversation: Codable, Identifiable {
     let id: UUID
-    var app: String
+    let app: ChatApp
     var contacts: [Contact]
     var messages: [Message]
-    var wallpaperName: String?
-    var createdAt: Date
-
-    init(id: UUID = UUID(), app: ChatApp, contacts: [Contact] = [], messages: [Message] = [], wallpaperName: String? = nil, createdAt: Date = Date()) {
+    var wallpaper: WallpaperType
+    let createdAt: Date
+    var updatedAt: Date
+    var isFavorite: Bool
+    
+    init(id: UUID = UUID(), app: ChatApp, contacts: [Contact] = [], messages: [Message] = [], wallpaper: WallpaperType = .default, createdAt: Date = Date(), updatedAt: Date = Date(), isFavorite: Bool = false) {
         self.id = id
-        self.app = app.rawValue
+        self.app = app
         self.contacts = contacts
         self.messages = messages
-        self.wallpaperName = wallpaperName
+        self.wallpaper = wallpaper
         self.createdAt = createdAt
-    }
-
-    var chatApp: ChatApp {
-        ChatApp(rawValue: app) ?? .iMessage
+        self.updatedAt = updatedAt
+        self.isFavorite = isFavorite
     }
 }
 
-struct ChatTemplate: Identifiable, Codable {
+// MARK: - Template Model
+struct Template: Codable, Identifiable {
     let id: UUID
-    var title: String
-    var subtitle: String
-    var conversation: Conversation
-
-    init(id: UUID = UUID(), title: String, subtitle: String, conversation: Conversation) {
+    let title: String
+    let app: ChatApp
+    let conversation: Conversation
+    let isPremium: Bool
+    
+    init(id: UUID = UUID(), title: String, app: ChatApp, conversation: Conversation, isPremium: Bool = false) {
         self.id = id
         self.title = title
-        self.subtitle = subtitle
+        self.app = app
         self.conversation = conversation
+        self.isPremium = isPremium
     }
 }
 
-struct SavedConversation: Identifiable, Codable {
-    let id: UUID
-    var conversation: Conversation
-    var thumbnailData: Data?
-    var savedAt: Date
-    var isFavorite: Bool
+// MARK: - Export Format
+enum ExportFormat: String, CaseIterable {
+    case portrait // 9:16 for stories
+    case square  // 1:1 for Instagram
+    case full     // Full chat export
+    
+    var aspectRatio: CGFloat {
+        switch self {
+        case .portrait: return 9.0 / 16.0
+        case .square: return 1.0
+        case .full: return 4.0 / 3.0
+        }
+    }
+}
 
-    init(id: UUID = UUID(), conversation: Conversation, thumbnailData: Data? = nil, savedAt: Date = Date(), isFavorite: Bool = false) {
+// MARK: - App Settings
+struct AppSettings: Codable {
+    var isDarkMode: Bool
+    var defaultApp: ChatApp
+    var defaultWallpaper: WallpaperType
+    var hapticEnabled: Bool
+    
+    static var `default`: AppSettings {
+        return AppSettings(
+            isDarkMode: true,
+            defaultApp: .iMessage,
+            defaultWallpaper: .default,
+            hapticEnabled: true
+        )
+    }
+}
+
+// MARK: - History Item
+struct HistoryItem: Codable, Identifiable {
+    let id: UUID
+    let conversation: Conversation
+    let thumbnailPath: String?
+    let savedAt: Date
+    
+    init(id: UUID = UUID(), conversation: Conversation, thumbnailPath: String? = nil, savedAt: Date = Date()) {
         self.id = id
         self.conversation = conversation
-        self.thumbnailData = thumbnailData
+        self.thumbnailPath = thumbnailPath
         self.savedAt = savedAt
-        self.isFavorite = isFavorite
     }
 }

@@ -1,96 +1,81 @@
 import UIKit
 
 class TemplatesViewController: UIViewController {
-    private var tableView: UITableView!
-    private var templates: [ChatTemplate] = []
+    
+    private var collectionView: UICollectionView!
+    private let templates: [Template] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        loadTemplates()
     }
     
     private func setupUI() {
-        view.backgroundColor = .black
+        view.backgroundColor = Design.Colors.backgroundPrimary
         title = "Templates"
         
-        tableView = UITableView(frame: .zero, style: .plain)
-        tableView.backgroundColor = .black
-        tableView.delegate = self
-        tableView.dataSource = self
-        tableView.register(TemplateCell.self, forCellReuseIdentifier: "TemplateCell")
-        tableView.separatorStyle = .none
-        tableView.rowHeight = 80
-        view.addSubview(tableView)
+        // Collection Layout
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .vertical
+        layout.minimumLineSpacing = Design.Spacing.lg
+        layout.sectionInset = UIEdgeInsets(top: Design.Spacing.lg, left: Design.Spacing.lg, bottom: Design.Spacing.lg, right: Design.Spacing.lg)
         
-        tableView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.backgroundColor = Design.Colors.backgroundPrimary
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.register(TemplateCell.self, forCellWithReuseIdentifier: "TemplateCell")
+        view.addSubview(collectionView)
+        
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
-    }
-    
-    private func loadTemplates() {
-        templates = [
-            createTemplate(title: "Celebrity Roast", subtitle: "Hilarious comeback", emoji: "😂", color: UIColor(hex: "FF2D7A")),
-            createTemplate(title: "Boss Prank", subtitle: "Classic work prank", emoji: "💼", color: UIColor(hex: "FF9F0A")),
-            createTemplate(title: "Crush Confession", subtitle: "Tell them how you feel", emoji: "❤️", color: UIColor(hex: "E1306C")),
-            createTemplate(title: "Group Chaos", subtitle: "Start drama", emoji: "🎉", color: UIColor(hex: "A855F7")),
-            createTemplate(title: "Mom Pranked", subtitle: "Classic comedy", emoji: "😱", color: UIColor(hex: "00D4FF"))
-        ]
-        tableView.reloadData()
-    }
-    
-    private func createTemplate(title: String, subtitle: String, emoji: String, color: UIColor) -> ChatTemplate {
-        let contact1 = Contact(name: "Me", avatar: .emoji("😎"))
-        let contact2 = Contact(name: "Friend", avatar: .emoji("🤪"))
-        let messages = [
-            Message(senderId: contact1.id, text: "Hey you won't believe this!", timestamp: Date()),
-            Message(senderId: contact2.id, text: "What happened??", timestamp: Date()),
-            Message(senderId: contact1.id, text: "I just won $1M from crypto!", timestamp: Date()),
-            Message(senderId: contact2.id, text: "WHAT?! That's amazing! 🚀", timestamp: Date())
-        ]
-        let conversation = Conversation(app: .iMessage, contacts: [contact1, contact2], messages: messages)
-        return ChatTemplate(title: title, subtitle: subtitle, conversation: conversation)
-    }
-    
-    private func triggerHaptic() {
-        if AppTheme.hapticEnabled {
-            let generator = UIImpactFeedbackGenerator(style: .medium)
-            generator.impactOccurred()
-        }
     }
 }
 
-extension TemplatesViewController: UITableViewDataSource, UITableViewDelegate {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return templates.count
+// MARK: - UICollectionViewDataSource
+extension TemplatesViewController: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return ChatApp.allCases.count
     }
     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "TemplateCell", for: indexPath) as! TemplateCell
-        cell.configure(with: templates[indexPath.row])
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TemplateCell", for: indexPath) as! TemplateCell
+        let app = ChatApp.allCases[indexPath.item]
+        cell.configure(with: app)
         return cell
     }
+}
+
+// MARK: - UICollectionViewDelegate
+extension TemplatesViewController: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let width = (collectionView.bounds.width - Design.Spacing.lg * 3) / 2
+        return CGSize(width: width, height: 160)
+    }
     
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         triggerHaptic()
-        let template = templates[indexPath.row]
-        let editorVC = ChatEditorViewController(chatApp: template.conversation.chatApp)
+        let app = ChatApp.allCases[indexPath.item]
+        let editorVC = ChatEditorViewController(chatApp: app)
         navigationController?.pushViewController(editorVC, animated: true)
     }
 }
 
-class TemplateCell: UITableViewCell {
-    private let iconLabel = UILabel()
+// MARK: - Template Cell
+class TemplateCell: UICollectionViewCell {
+    private let containerView = UIView()
+    private let iconView = UIImageView()
     private let titleLabel = UILabel()
-    private let subtitleLabel = UILabel()
+    private let descriptionLabel = UILabel()
+    private let gradientLayer = CAGradientLayer()
     
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         setupUI()
     }
     
@@ -98,53 +83,66 @@ class TemplateCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        gradientLayer.frame = containerView.bounds
+    }
+    
     private func setupUI() {
-        backgroundColor = .black
-        selectionStyle = .none
+        containerView.layer.cornerRadius = Design.Radius.card
+        containerView.clipsToBounds = true
+        contentView.addSubview(containerView)
         
-        iconLabel.font = .systemFont(ofSize: 28)
-        contentView.addSubview(iconLabel)
+        gradientLayer.colors = Design.Gradients.accent
+        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+        gradientLayer.endPoint = CGPoint(x: 1, y: 1)
+        containerView.layer.insertSublayer(gradientLayer, at: 0)
         
-        titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
+        iconView.contentMode = .scaleAspectFit
+        iconView.tintColor = .white
+        containerView.addSubview(iconView)
+        
+        titleLabel.font = Design.Typography.headline
         titleLabel.textColor = .white
-        contentView.addSubview(titleLabel)
+        titleLabel.textAlignment = .center
+        containerView.addSubview(titleLabel)
         
-        subtitleLabel.font = .systemFont(ofSize: 14, weight: .regular)
-        subtitleLabel.textColor = UIColor.white.withAlphaComponent(0.6)
-        contentView.addSubview(subtitleLabel)
+        descriptionLabel.font = Design.Typography.caption1
+        descriptionLabel.textColor = UIColor.white.withAlphaComponent(0.8)
+        descriptionLabel.textAlignment = .center
+        descriptionLabel.numberOfLines = 2
+        containerView.addSubview(descriptionLabel)
         
-        iconLabel.translatesAutoresizingMaskIntoConstraints = false
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        iconView.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            iconLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            iconLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            iconLabel.widthAnchor.constraint(equalToConstant: 40),
+            containerView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             
-            titleLabel.leadingAnchor.constraint(equalTo: iconLabel.trailingAnchor, constant: 16),
-            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
+            iconView.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
+            iconView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor, constant: -30),
+            iconView.widthAnchor.constraint(equalToConstant: 40),
+            iconView.heightAnchor.constraint(equalToConstant: 40),
             
-            subtitleLabel.leadingAnchor.constraint(equalTo: iconLabel.trailingAnchor, constant: 16),
-            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4)
+            titleLabel.topAnchor.constraint(equalTo: iconView.bottomAnchor, constant: Design.Spacing.md),
+            titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: Design.Spacing.sm),
+            titleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -Design.Spacing.sm),
+            
+            descriptionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: Design.Spacing.xs),
+            descriptionLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: Design.Spacing.sm),
+            descriptionLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -Design.Spacing.sm)
         ])
     }
     
-    func configure(with template: ChatTemplate) {
-        titleLabel.text = template.title
-        subtitleLabel.text = template.subtitle
-        
-        // Extract emoji from title or use default
-        if template.title.contains("Celebrity") {
-            iconLabel.text = "😂"
-        } else if template.title.contains("Boss") {
-            iconLabel.text = "💼"
-        } else if template.title.contains("Crush") {
-            iconLabel.text = "❤️"
-        } else if template.title.contains("Group") {
-            iconLabel.text = "🎉"
-        } else {
-            iconLabel.text = "😱"
-        }
+    func configure(with app: ChatApp) {
+        iconView.image = UIImage(systemName: app.iconName)
+        titleLabel.text = app.displayName
+        descriptionLabel.text = app.description
+        gradientLayer.colors = Design.Gradients.forApp(app)
     }
 }

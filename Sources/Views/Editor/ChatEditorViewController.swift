@@ -1,310 +1,421 @@
 import UIKit
 
 class ChatEditorViewController: UIViewController {
+    
     private let chatApp: ChatApp
-    private var conversation = Conversation(app: ChatApp.iMessage)
-    private var tableView: UITableView!
-    private var previewButton: UIButton!
-
+    private var conversation: Conversation
+    private var contacts: [Contact] = []
+    private var messages: [Message] = []
+    
+    // UI Components
+    private let headerView = UIView()
+    private let contactAvatarView = UIView()
+    private let contactAvatarLabel = UILabel()
+    private let contactNameLabel = UILabel()
+    private let contactStatusLabel = UILabel()
+    private let tableView = UITableView()
+    private let inputBar = UIView()
+    private let messageInputField = UITextField()
+    private let sendButton = UIButton()
+    private let addMessageButton = UIButton()
+    
     init(chatApp: ChatApp) {
         self.chatApp = chatApp
+        self.conversation = Conversation(app: chatApp)
         super.init(nibName: nil, bundle: nil)
     }
-
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        setupConversation()
+        setupNavigation()
+        setupInitialData()
     }
-
+    
+    private func setupNavigation() {
+        title = chatApp.displayName
+        navigationController?.navigationBar.prefersLargeTitles = false
+        
+        // Preview button
+        let previewButton = UIBarButtonItem(
+            image: UIImage(systemName: "eye"),
+            style: .plain,
+            target: self,
+            action: #selector(previewTapped)
+        )
+        navigationItem.rightBarButtonItem = previewButton
+    }
+    
     private func setupUI() {
-        title = "Create Chat"
-        view.backgroundColor = AppTheme.background
-
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Add Message", style: .plain, target: self, action: #selector(addMessageTapped))
-        navigationItem.rightBarButtonItem?.tintColor = Theme.accentCyan
-
-        tableView = UITableView(frame: .zero, style: .insetGrouped)
-        tableView.backgroundColor = AppTheme.background
+        view.backgroundColor = Design.Colors.backgroundPrimary
+        
+        // Header View
+        headerView.backgroundColor = Design.Colors.backgroundSecondary
+        view.addSubview(headerView)
+        
+        // Contact Avatar
+        contactAvatarView.backgroundColor = chatApp.primaryColor.withAlphaComponent(0.2)
+        contactAvatarView.layer.cornerRadius = 24
+        headerView.addSubview(contactAvatarView)
+        
+        contactAvatarLabel.font = .systemFont(ofSize: 24)
+        contactAvatarLabel.textAlignment = .center
+        contactAvatarView.addSubview(contactAvatarLabel)
+        
+        // Contact Name
+        contactNameLabel.font = Design.Typography.headline
+        contactNameLabel.textColor = Design.Colors.textPrimary
+        headerView.addSubview(contactNameLabel)
+        
+        // Contact Status
+        contactStatusLabel.font = Design.Typography.caption1
+        contactStatusLabel.textColor = Design.Colors.textSecondary
+        headerView.addSubview(contactStatusLabel)
+        
+        // Table View
+        tableView.backgroundColor = Design.Colors.backgroundPrimary
+        tableView.separatorStyle = .none
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(MessageCell.self, forCellReuseIdentifier: "MessageCell")
-        tableView.register(ContactCell.self, forCellReuseIdentifier: "ContactCell")
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "AddCell")
+        tableView.keyboardDismissMode = .interactive
         view.addSubview(tableView)
-
-        previewButton = UIButton(type: .system)
-        previewButton.setTitle("Preview Screenshot", for: .normal)
-        previewButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
-        previewButton.backgroundColor = Theme.accentCyan
-        previewButton.setTitleColor(.black, for: .normal)
-        previewButton.layer.cornerRadius = 16
-        previewButton.addTarget(self, action: #selector(previewTapped), for: .touchUpInside)
-        view.addSubview(previewButton)
-
+        
+        // Input Bar
+        inputBar.backgroundColor = Design.Colors.backgroundSecondary
+        view.addSubview(inputBar)
+        
+        // Add Message Button
+        addMessageButton.setImage(UIImage(systemName: "plus.circle.fill"), for: .normal)
+        addMessageButton.tintColor = chatApp.primaryColor
+        addMessageButton.addTarget(self, action: #selector(addMessageTapped), for: .touchUpInside)
+        inputBar.addSubview(addMessageButton)
+        
+        // Message Input
+        messageInputField.backgroundColor = Design.Colors.backgroundPrimary
+        messageInputField.textColor = Design.Colors.textPrimary
+        messageInputField.font = Design.Typography.body
+        messageInputField.placeholder = "Type a message..."
+        messageInputField.layer.cornerRadius = Design.Radius.large
+        messageInputField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
+        messageInputField.leftViewMode = .always
+        messageInputField.delegate = self
+        inputBar.addSubview(messageInputField)
+        
+        // Send Button
+        sendButton.setImage(UIImage(systemName: "arrow.up.circle.fill"), for: .normal)
+        sendButton.tintColor = chatApp.primaryColor
+        sendButton.addTarget(self, action: #selector(sendTapped), for: .touchUpInside)
+        inputBar.addSubview(sendButton)
+        
+        // Layout
+        setupConstraints()
+    }
+    
+    private func setupConstraints() {
+        headerView.translatesAutoresizingMaskIntoConstraints = false
+        contactAvatarView.translatesAutoresizingMaskIntoConstraints = false
+        contactAvatarLabel.translatesAutoresizingMaskIntoConstraints = false
+        contactNameLabel.translatesAutoresizingMaskIntoConstraints = false
+        contactStatusLabel.translatesAutoresizingMaskIntoConstraints = false
         tableView.translatesAutoresizingMaskIntoConstraints = false
-        previewButton.translatesAutoresizingMaskIntoConstraints = false
-
+        inputBar.translatesAutoresizingMaskIntoConstraints = false
+        addMessageButton.translatesAutoresizingMaskIntoConstraints = false
+        messageInputField.translatesAutoresizingMaskIntoConstraints = false
+        sendButton.translatesAutoresizingMaskIntoConstraints = false
+        
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.topAnchor),
+            // Header
+            headerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            headerView.heightAnchor.constraint(equalToConstant: 80),
+            
+            contactAvatarView.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: Design.Spacing.lg),
+            contactAvatarView.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
+            contactAvatarView.widthAnchor.constraint(equalToConstant: 48),
+            contactAvatarView.heightAnchor.constraint(equalToConstant: 48),
+            
+            contactAvatarLabel.centerXAnchor.constraint(equalTo: contactAvatarView.centerXAnchor),
+            contactAvatarLabel.centerYAnchor.constraint(equalTo: contactAvatarView.centerYAnchor),
+            
+            contactNameLabel.leadingAnchor.constraint(equalTo: contactAvatarView.trailingAnchor, constant: Design.Spacing.md),
+            contactNameLabel.topAnchor.constraint(equalTo: contactAvatarView.topAnchor, constant: Design.Spacing.xs),
+            
+            contactStatusLabel.leadingAnchor.constraint(equalTo: contactAvatarView.trailingAnchor, constant: Design.Spacing.md),
+            contactStatusLabel.topAnchor.constraint(equalTo: contactNameLabel.bottomAnchor, constant: Design.Spacing.xs),
+            
+            // Table
+            tableView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: previewButton.topAnchor, constant: -16),
-
-            previewButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            previewButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            previewButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-            previewButton.heightAnchor.constraint(equalToConstant: 56)
+            tableView.bottomAnchor.constraint(equalTo: inputBar.topAnchor),
+            
+            // Input Bar
+            inputBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            inputBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            inputBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            inputBar.heightAnchor.constraint(equalToConstant: 60),
+            
+            addMessageButton.leadingAnchor.constraint(equalTo: inputBar.leadingAnchor, constant: Design.Spacing.lg),
+            addMessageButton.centerYAnchor.constraint(equalTo: inputBar.centerYAnchor),
+            addMessageButton.widthAnchor.constraint(equalToConstant: 36),
+            addMessageButton.heightAnchor.constraint(equalToConstant: 36),
+            
+            messageInputField.leadingAnchor.constraint(equalTo: addMessageButton.trailingAnchor, constant: Design.Spacing.md),
+            messageInputField.trailingAnchor.constraint(equalTo: sendButton.leadingAnchor, constant: -Design.Spacing.md),
+            messageInputField.centerYAnchor.constraint(equalTo: inputBar.centerYAnchor),
+            messageInputField.heightAnchor.constraint(equalToConstant: 40),
+            
+            sendButton.trailingAnchor.constraint(equalTo: inputBar.trailingAnchor, constant: -Design.Spacing.lg),
+            sendButton.centerYAnchor.constraint(equalTo: inputBar.centerYAnchor),
+            sendButton.widthAnchor.constraint(equalToConstant: 36),
+            sendButton.heightAnchor.constraint(equalToConstant: 36)
         ])
     }
-
-    private func setupConversation() {
-        let userContact = Contact(name: "Me", avatar: .emoji("😎"), isOnline: false)
-        let otherContact = Contact(name: "John", avatar: .emoji("😄"), isOnline: true)
-        conversation.contacts = [userContact, otherContact]
-
-        let timestamp = Date()
-        let msg1 = Message(senderId: userContact.id, text: "Hey, what's up?", timestamp: timestamp.addingTimeInterval(-300), status: .read)
-        let msg2 = Message(senderId: otherContact.id, text: "Not much, just hanging out 👋", timestamp: timestamp, status: .delivered)
-        conversation.messages = [msg1, msg2]
+    
+    private func setupInitialData() {
+        // Add a default contact
+        let defaultContact = Contact(name: "John Doe", avatar: .emoji("😎"), isOnline: true)
+        contacts = [defaultContact]
+        conversation.contacts = contacts
+        
+        // Add sample messages
+        let receivedMsg = Message(senderId: defaultContact.id, text: "Hey! How are you?", timestamp: Date().addingTimeInterval(-300), status: .read)
+        let sentMsg = Message(senderId: Message.currentUserId, text: "I'm good! Just testing this app", timestamp: Date().addingTimeInterval(-60), status: .delivered)
+        
+        messages = [receivedMsg, sentMsg]
+        conversation.messages = messages
+        
+        updateContactUI()
+        tableView.reloadData()
     }
-
-    @objc private func addMessageTapped() {
-        let alert = UIAlertController(title: "Add Message", message: nil, preferredStyle: .actionSheet)
-
-        alert.addAction(UIAlertAction(title: "Sent by Me", style: .default) { [weak self] _ in
-            self?.showAddMessageUI(isSentByMe: true)
-        })
-        alert.addAction(UIAlertAction(title: "Sent by Other", style: .default) { [weak self] _ in
-            self?.showAddMessageUI(isSentByMe: false)
-        })
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-
-        present(alert, animated: true)
+    
+    private func updateContactUI() {
+        guard let contact = contacts.first else { return }
+        contactAvatarLabel.text = contact.avatar.display
+        contactNameLabel.text = contact.name
+        contactStatusLabel.text = contact.isOnline ? "online" : contact.lastSeenText
     }
-
-    private func showAddMessageUI(isSentByMe: Bool) {
-        let contact = isSentByMe ? conversation.contacts[0] : conversation.contacts[1]
-
-        let alert = UIAlertController(title: "Message from \(contact.name)", message: nil, preferredStyle: .alert)
-        alert.addTextField { textField in
-            textField.placeholder = "Enter message text"
-        }
-
-        alert.addAction(UIAlertAction(title: "Add", style: .default) { [weak self] _ in
-            guard let text = alert.textFields?.first?.text, !text.isEmpty else { return }
-            let message = Message(senderId: contact.id, text: text, timestamp: Date(), status: .sent)
-            self?.conversation.messages.append(message)
-            self?.tableView.reloadData()
-            self?.triggerHaptic()
-        })
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-
-        present(alert, animated: true)
-    }
-
+    
+    // MARK: - Actions
+    
     @objc private func previewTapped() {
+        triggerHaptic()
         let previewVC = PreviewViewController(conversation: conversation)
         navigationController?.pushViewController(previewVC, animated: true)
     }
-
-    private func triggerHaptic() {
-        if AppTheme.hapticEnabled {
-            let generator = UIImpactFeedbackGenerator(style: .medium)
-            generator.impactOccurred()
+    
+    @objc private func addMessageTapped() {
+        triggerHaptic()
+        showAddMessageAlert()
+    }
+    
+    @objc private func sendTapped() {
+        guard let text = messageInputField.text, !text.isEmpty else { return }
+        triggerHaptic()
+        
+        let newMessage = Message(
+            senderId: Message.currentUserId,
+            text: text,
+            timestamp: Date(),
+            status: .sent
+        )
+        
+        messages.append(newMessage)
+        conversation.messages = messages
+        messageInputField.text = ""
+        
+        tableView.insertRows(at: [IndexPath(row: messages.count - 1, section: 0)], with: .automatic)
+        tableView.scrollToRow(at: IndexPath(row: messages.count - 1, section: 0), at: .bottom, animated: true)
+    }
+    
+    private func showAddMessageAlert() {
+        let alert = UIAlertController(title: "Add Message", message: nil, preferredStyle: .actionSheet)
+        
+        alert.addAction(UIAlertAction(title: "Sent Message (Me)", style: .default) { [weak self] _ in
+            self?.showMessageInputAlert(isSent: true)
+        })
+        
+        alert.addAction(UIAlertAction(title: "Received Message", style: .default) { [weak self] _ in
+            self?.showMessageInputAlert(isSent: false)
+        })
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+        present(alert, animated: true)
+    }
+    
+    private func showMessageInputAlert(isSent: Bool) {
+        let alert = UIAlertController(title: isSent ? "Sent Message" : "Received Message", message: nil, preferredStyle: .alert)
+        
+        alert.addTextField { textField in
+            textField.placeholder = "Enter message text..."
         }
+        
+        alert.addAction(UIAlertAction(title: "Add", style: .default) { [weak self] _ in
+            guard let text = alert.textFields?.first?.text, !text.isEmpty else { return }
+            
+            let senderId = isSent ? Message.currentUserId : (self?.contacts.first?.id ?? UUID())
+            let newMessage = Message(
+                senderId: senderId ?? Message.currentUserId,
+                text: text,
+                timestamp: Date(),
+                status: isSent ? .sent : .delivered
+            )
+            
+            self?.messages.append(newMessage)
+            self?.conversation.messages = self?.messages ?? []
+            self?.tableView.reloadData()
+            self?.tableView.scrollToRow(at: IndexPath(row: (self?.messages.count ?? 1) - 1, section: 0), at: .bottom, animated: true)
+        })
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+        present(alert, animated: true)
     }
 }
 
-extension ChatEditorViewController: UITableViewDataSource, UITableViewDelegate {
-    func numberOfSections(in tableView: UITableView) -> Int {
-        return 3
-    }
-
+// MARK: - UITableViewDataSource
+extension ChatEditorViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch section {
-        case 0: return 2 // Contacts
-        case 1: return conversation.messages.count
-        case 2: return 1 // Add button
-        default: return 0
-        }
+        return messages.count
     }
-
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        switch section {
-        case 0: return "Contacts"
-        case 1: return "Messages (\(conversation.messages.count))"
-        case 2: return nil
-        default: return nil
-        }
-    }
-
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        switch indexPath.section {
-        case 0:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "ContactCell", for: indexPath) as! ContactCell
-            if indexPath.row < conversation.contacts.count {
-                cell.configure(with: conversation.contacts[indexPath.row])
-            }
-            return cell
-        case 1:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "MessageCell", for: indexPath) as! MessageCell
-            let message = conversation.messages[indexPath.row]
-            let contact = conversation.contacts.first { $0.id == message.senderId }
-            let isSentByMe = message.senderId == conversation.contacts.first?.id
-            cell.configure(with: message, contactName: contact?.name ?? "Unknown", chatApp: chatApp, isSentByMe: isSentByMe)
-            return cell
-        case 2:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "AddCell", for: indexPath)
-            cell.textLabel?.text = "+ Add Message"
-            cell.textLabel?.textColor = Theme.accentCyan
-            cell.backgroundColor = AppTheme.surface
-            return cell
-        default:
-            return UITableViewCell()
-        }
-    }
-
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-        if indexPath.section == 2 {
-            addMessageTapped()
-        }
-    }
-
-    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        guard indexPath.section == 1 else { return nil }
-        let delete = UIContextualAction(style: .destructive, title: "Delete") { [weak self] _, _, completion in
-            self?.conversation.messages.remove(at: indexPath.row)
-            tableView.deleteRows(at: [indexPath], with: .automatic)
-            completion(true)
-        }
-        return UISwipeActionsConfiguration(actions: [delete])
+        let cell = tableView.dequeueReusableCell(withIdentifier: "MessageCell", for: indexPath) as! MessageCell
+        let message = messages[indexPath.row]
+        let isMe = message.senderId == Message.currentUserId
+        cell.configure(with: message, isSentByMe: isMe, chatApp: chatApp)
+        return cell
     }
 }
 
-class ContactCell: UITableViewCell {
-    private let avatarLabel = UILabel()
-    private let nameLabel = UILabel()
-    private let statusDot = UIView()
-
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupUI()
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    private func setupUI() {
-        backgroundColor = AppTheme.surface
-        selectionStyle = .default
-
-        avatarLabel.font = .systemFont(ofSize: 32)
-        contentView.addSubview(avatarLabel)
-
-        nameLabel.font = .systemFont(ofSize: 17, weight: .medium)
-        nameLabel.textColor = AppTheme.textPrimary
-        contentView.addSubview(nameLabel)
-
-        statusDot.layer.cornerRadius = 5
-        contentView.addSubview(statusDot)
-
-        avatarLabel.translatesAutoresizingMaskIntoConstraints = false
-        nameLabel.translatesAutoresizingMaskIntoConstraints = false
-        statusDot.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            avatarLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            avatarLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            nameLabel.leadingAnchor.constraint(equalTo: avatarLabel.trailingAnchor, constant: 12),
-            nameLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            statusDot.leadingAnchor.constraint(equalTo: nameLabel.trailingAnchor, constant: 8),
-            statusDot.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            statusDot.widthAnchor.constraint(equalToConstant: 10),
-            statusDot.heightAnchor.constraint(equalToConstant: 10)
-        ])
-    }
-
-    func configure(with contact: Contact) {
-        switch contact.avatar {
-        case .emoji(let e): avatarLabel.text = e
-        case .image: avatarLabel.text = "🧑"
-        }
-        nameLabel.text = contact.name
-        statusDot.backgroundColor = contact.isOnline ? Theme.success : Theme.textSecondary
+// MARK: - UITableViewDelegate
+extension ChatEditorViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return UITableView.automaticDimension
     }
 }
 
+// MARK: - UITextFieldDelegate
+extension ChatEditorViewController: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        sendTapped()
+        return true
+    }
+}
+
+// MARK: - Message Cell
 class MessageCell: UITableViewCell {
     private let bubbleView = UIView()
-    private let senderLabel = UILabel()
     private let messageLabel = UILabel()
     private let timeLabel = UILabel()
-
+    private let statusImageView = UIImageView()
+    
+    private var bubbleLeadingConstraint: NSLayoutConstraint!
+    private var bubbleTrailingConstraint: NSLayoutConstraint!
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
     }
-
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
     private func setupUI() {
         backgroundColor = .clear
         selectionStyle = .none
-
-        bubbleView.layer.cornerRadius = 18
+        
+        bubbleView.layer.cornerRadius = Design.Radius.medium
         contentView.addSubview(bubbleView)
-
-        senderLabel.font = .systemFont(ofSize: 12, weight: .semibold)
-        senderLabel.textColor = Theme.accentCyan
-        bubbleView.addSubview(senderLabel)
-
-        messageLabel.font = .systemFont(ofSize: 16)
+        
+        messageLabel.font = Design.Typography.body
         messageLabel.numberOfLines = 0
         bubbleView.addSubview(messageLabel)
-
-        timeLabel.font = .systemFont(ofSize: 11)
-        timeLabel.textColor = AppTheme.textSecondary
-        bubbleView.addSubview(timeLabel)
-
+        
+        timeLabel.font = Design.Typography.caption2
+        timeLabel.textColor = Design.Colors.textSecondary
+        contentView.addSubview(timeLabel)
+        
+        statusImageView.contentMode = .scaleAspectFit
+        statusImageView.tintColor = Design.Colors.accentCyan
+        contentView.addSubview(statusImageView)
+        
         bubbleView.translatesAutoresizingMaskIntoConstraints = false
-        senderLabel.translatesAutoresizingMaskIntoConstraints = false
         messageLabel.translatesAutoresizingMaskIntoConstraints = false
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
-
+        statusImageView.translatesAutoresizingMaskIntoConstraints = false
+        
+        bubbleLeadingConstraint = bubbleView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Design.Spacing.lg)
+        bubbleTrailingConstraint = bubbleView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Design.Spacing.lg)
+        
         NSLayoutConstraint.activate([
-            bubbleView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            bubbleView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
-            bubbleView.widthAnchor.constraint(lessThanOrEqualToConstant: 280),
-            senderLabel.topAnchor.constraint(equalTo: bubbleView.topAnchor, constant: 10),
-            senderLabel.leadingAnchor.constraint(equalTo: bubbleView.leadingAnchor, constant: 14),
-            senderLabel.trailingAnchor.constraint(equalTo: bubbleView.trailingAnchor, constant: -14),
-            messageLabel.topAnchor.constraint(equalTo: senderLabel.bottomAnchor, constant: 4),
-            messageLabel.leadingAnchor.constraint(equalTo: bubbleView.leadingAnchor, constant: 14),
-            messageLabel.trailingAnchor.constraint(equalTo: bubbleView.trailingAnchor, constant: -14),
-            timeLabel.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: 6),
-            timeLabel.trailingAnchor.constraint(equalTo: bubbleView.trailingAnchor, constant: -14),
-            timeLabel.bottomAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: -10)
+            bubbleView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: Design.Spacing.xs),
+            bubbleView.widthAnchor.constraint(lessThanOrEqualTo: contentView.widthAnchor, multiplier: 0.75),
+            
+            messageLabel.topAnchor.constraint(equalTo: bubbleView.topAnchor, constant: Design.Spacing.md),
+            messageLabel.leadingAnchor.constraint(equalTo: bubbleView.leadingAnchor, constant: Design.Spacing.lg),
+            messageLabel.trailingAnchor.constraint(equalTo: bubbleView.trailingAnchor, constant: -Design.Spacing.lg),
+            messageLabel.bottomAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: -Design.Spacing.md),
+            
+            bubbleView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -Design.Spacing.xs),
+            
+            timeLabel.topAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: Design.Spacing.xs),
+            timeLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -Design.Spacing.xs),
+            
+            statusImageView.centerYAnchor.constraint(equalTo: timeLabel.centerYAnchor),
+            statusImageView.widthAnchor.constraint(equalToConstant: 14),
+            statusImageView.heightAnchor.constraint(equalToConstant: 14)
         ])
     }
-
-    func configure(with message: Message, contactName: String, chatApp: ChatApp, isSentByMe: Bool) {
-        senderLabel.text = contactName
+    
+    func configure(with message: Message, isSentByMe: Bool, chatApp: ChatApp) {
         messageLabel.text = message.text
-
+        
+        // Time formatting
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         timeLabel.text = formatter.string(from: message.timestamp)
-
-        bubbleView.backgroundColor = isSentByMe ? chatApp.bubbleSentColor : chatApp.bubbleReceivedColor
-        messageLabel.textColor = isSentByMe ? (chatApp.isDarkBackground ? .white : .black) : (chatApp.isDarkBackground ? .white : .black)
+        
+        // Bubble color
+        if isSentByMe {
+            bubbleView.backgroundColor = chatApp.primaryColor
+            messageLabel.textColor = .white
+            bubbleLeadingConstraint.isActive = false
+            bubbleTrailingConstraint.isActive = true
+            
+            timeLabel.trailingAnchor.constraint(equalTo: statusImageView.leadingAnchor, constant: -Design.Spacing.xs).isActive = true
+            statusImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Design.Spacing.lg).isActive = true
+            
+            // Status
+            switch message.status {
+            case .sending:
+                statusImageView.image = UIImage(systemName: "clock")
+            case .sent:
+                statusImageView.image = UIImage(systemName: "checkmark")
+            case .delivered:
+                statusImageView.image = UIImage(systemName: "checkmark.circle")
+            case .read:
+                statusImageView.image = UIImage(systemName: "checkmark.circle.fill")
+            case .failed:
+                statusImageView.image = UIImage(systemName: "exclamationmark.circle")
+                statusImageView.tintColor = Design.Colors.error
+            }
+            statusImageView.isHidden = false
+        } else {
+            bubbleView.backgroundColor = Design.Colors.backgroundSecondary
+            messageLabel.textColor = Design.Colors.textPrimary
+            bubbleTrailingConstraint.isActive = false
+            bubbleLeadingConstraint.isActive = true
+            
+            statusImageView.isHidden = true
+        }
     }
 }

@@ -1,6 +1,7 @@
 import UIKit
 
 class MainTabBarController: UITabBarController {
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTabs()
@@ -8,39 +9,80 @@ class MainTabBarController: UITabBarController {
     }
     
     private func setupTabs() {
-        let homeVC = UINavigationController(rootViewController: HomeViewController())
-        homeVC.tabBarItem = UITabBarItem(title: "Create", image: UIImage(systemName: "plus.circle.fill"), tag: 0)
+        // Home - Create Tab
+        let homeVC = HomeViewController()
+        let homeNav = UINavigationController(rootViewController: homeVC)
+        homeNav.tabBarItem = UITabBarItem(
+            title: "Create",
+            image: UIImage(systemName: "plus.circle"),
+            selectedImage: UIImage(systemName: "plus.circle.fill")
+        )
         
-        let templatesVC = UINavigationController(rootViewController: TemplatesViewController())
-        templatesVC.tabBarItem = UITabBarItem(title: "Templates", image: UIImage(systemName: "rectangle.grid.2x2.fill"), tag: 1)
+        // Templates Tab
+        let templatesVC = TemplatesViewController()
+        let templatesNav = UINavigationController(rootViewController: templatesVC)
+        templatesNav.tabBarItem = UITabBarItem(
+            title: "Templates",
+            image: UIImage(systemName: "square.grid.2x2"),
+            selectedImage: UIImage(systemName: "square.grid.2x2.fill")
+        )
         
-        let historyVC = UINavigationController(rootViewController: HistoryViewController())
-        historyVC.tabBarItem = UITabBarItem(title: "History", image: UIImage(systemName: "clock.fill"), tag: 2)
+        // History Tab
+        let historyVC = HistoryViewController()
+        let historyNav = UINavigationController(rootViewController: historyVC)
+        historyNav.tabBarItem = UITabBarItem(
+            title: "History",
+            image: UIImage(systemName: "clock"),
+            selectedImage: UIImage(systemName: "clock.fill")
+        )
         
-        let settingsVC = UINavigationController(rootViewController: SettingsViewController())
-        settingsVC.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gearshape.fill"), tag: 3)
+        // Settings Tab
+        let settingsVC = SettingsViewController()
+        let settingsNav = UINavigationController(rootViewController: settingsVC)
+        settingsNav.tabBarItem = UITabBarItem(
+            title: "Settings",
+            image: UIImage(systemName: "gearshape"),
+            selectedImage: UIImage(systemName: "gearshape.fill")
+        )
         
-        viewControllers = [homeVC, templatesVC, historyVC, settingsVC]
+        viewControllers = [homeNav, templatesNav, historyNav, settingsNav]
     }
     
     private func setupAppearance() {
-        view.backgroundColor = .black
-        tabBar.backgroundColor = UIColor(hex: "0A0A0A")
-        tabBar.barTintColor = UIColor(hex: "0A0A0A")
-        tabBar.tintColor = .white
-        tabBar.unselectedItemTintColor = UIColor.white.withAlphaComponent(0.5)
-        tabBar.isTranslucent = false
+        // Tab bar appearance
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = Design.Colors.backgroundSecondary
         
-        if #available(iOS 15.0, *) {
-            let appearance = UITabBarAppearance()
-            appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor = UIColor(hex: "0A0A0A")
-            appearance.stackedLayoutAppearance.normal.iconColor = UIColor.white.withAlphaComponent(0.5)
-            appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.white.withAlphaComponent(0.5)]
-            appearance.stackedLayoutAppearance.selected.iconColor = UIColor.white
-            appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor.white]
-            tabBar.standardAppearance = appearance
-            tabBar.scrollEdgeAppearance = appearance
-        }
+        // Normal state
+        appearance.stackedLayoutAppearance.normal.iconColor = Design.Colors.textSecondary
+        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
+            .foregroundColor: Design.Colors.textSecondary
+        ]
+        
+        // Selected state
+        appearance.stackedLayoutAppearance.selected.iconColor = Design.Colors.accentCyan
+        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
+            .foregroundColor: Design.Colors.accentCyan
+        ]
+        
+        tabBar.standardAppearance = appearance
+        tabBar.scrollEdgeAppearance = appearance
+        
+        // Navigation bar appearance
+        let navAppearance = UINavigationBarAppearance()
+        navAppearance.configureWithOpaqueBackground()
+        navAppearance.backgroundColor = Design.Colors.backgroundPrimary
+        navAppearance.titleTextAttributes = [
+            .foregroundColor: Design.Colors.textPrimary
+        ]
+        navAppearance.largeTitleTextAttributes = [
+            .foregroundColor: Design.Colors.textPrimary
+        ]
+        
+        UINavigationBar.appearance().standardAppearance = navAppearance
+        UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
+        UINavigationBar.appearance().compactAppearance = navAppearance
+        UINavigationBar.appearance().tintColor = Design.Colors.accentCyan
     }
 }

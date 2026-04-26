@@ -1,347 +1,230 @@
 import UIKit
 
 class PreviewViewController: UIViewController {
+    
     private let conversation: Conversation
-    private var previewView: ChatPreviewView!
-    private var exportButton: UIButton!
-    private var formatSegment: UISegmentedControl!
-
+    private var exportFormat: ExportFormat = .portrait
+    
+    private let previewView = UIView()
+    private let formatSegment = UISegmentedControl()
+    private let saveButton = UIButton()
+    private let shareButton = UIButton()
+    
     init(conversation: Conversation) {
         self.conversation = conversation
         super.init(nibName: nil, bundle: nil)
     }
-
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
     }
-
+    
     private func setupUI() {
+        view.backgroundColor = Design.Colors.backgroundPrimary
         title = "Preview"
-        view.backgroundColor = AppTheme.background
-
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Share", style: .plain, target: self, action: #selector(shareTapped))
-        navigationItem.rightBarButtonItem?.tintColor = Theme.accentCyan
-
-        formatSegment = UISegmentedControl(items: ["Phone", "Square", "Story"])
+        
+        // Format Segment
+        formatSegment.insertSegment(withTitle: "Portrait", at: 0, animated: false)
+        formatSegment.insertSegment(withTitle: "Square", at: 1, animated: false)
+        formatSegment.insertSegment(withTitle: "Full", at: 2, animated: false)
         formatSegment.selectedSegmentIndex = 0
         formatSegment.addTarget(self, action: #selector(formatChanged), for: .valueChanged)
         view.addSubview(formatSegment)
-
-        previewView = ChatPreviewView(conversation: conversation)
-        previewView.layer.cornerRadius = 20
-        previewView.layer.masksToBounds = true
+        
+        // Preview Container
+        previewView.backgroundColor = Design.Colors.backgroundSecondary
+        previewView.layer.cornerRadius = Design.Radius.large
+        previewView.clipsToBounds = true
         view.addSubview(previewView)
-
-        exportButton = UIButton(type: .system)
-        exportButton.setTitle("Save to Photos", for: .normal)
-        exportButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
-        exportButton.backgroundColor = Theme.accentCyan
-        exportButton.setTitleColor(.black, for: .normal)
-        exportButton.layer.cornerRadius = 16
-        exportButton.addTarget(self, action: #selector(saveToPhotos), for: .touchUpInside)
-        view.addSubview(exportButton)
-
+        
+        // Buttons
+        saveButton.setTitle("Save to Photos", for: .normal)
+        saveButton.setImage(UIImage(systemName: "square.and.arrow.down"), for: .normal)
+        saveButton.backgroundColor = Design.Colors.accentCyan
+        saveButton.setTitleColor(.black, for: .normal)
+        saveButton.tintColor = .black
+        saveButton.layer.cornerRadius = Design.Radius.medium
+        saveButton.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
+        view.addSubview(saveButton)
+        
+        shareButton.setTitle("Share", for: .normal)
+        shareButton.setImage(UIImage(systemName: "square.and.arrow.up"), for: .normal)
+        shareButton.backgroundColor = Design.Colors.backgroundSecondary
+        shareButton.setTitleColor(Design.Colors.textPrimary, for: .normal)
+        shareButton.tintColor = Design.Colors.textPrimary
+        shareButton.layer.cornerRadius = Design.Radius.medium
+        shareButton.layer.borderWidth = 1
+        shareButton.layer.borderColor = Design.Colors.accentCyan.cgColor
+        shareButton.addTarget(self, action: #selector(shareTapped), for: .touchUpInside)
+        view.addSubview(shareButton)
+        
+        // Layout
         formatSegment.translatesAutoresizingMaskIntoConstraints = false
         previewView.translatesAutoresizingMaskIntoConstraints = false
-        exportButton.translatesAutoresizingMaskIntoConstraints = false
-
+        saveButton.translatesAutoresizingMaskIntoConstraints = false
+        shareButton.translatesAutoresizingMaskIntoConstraints = false
+        
         NSLayoutConstraint.activate([
-            formatSegment.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-            formatSegment.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            formatSegment.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-
-            previewView.topAnchor.constraint(equalTo: formatSegment.bottomAnchor, constant: 16),
-            previewView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            previewView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            previewView.heightAnchor.constraint(equalTo: previewView.widthAnchor, multiplier: 1.0),
-
-            exportButton.topAnchor.constraint(equalTo: previewView.bottomAnchor, constant: 16),
-            exportButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            exportButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            exportButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-            exportButton.heightAnchor.constraint(equalToConstant: 56)
+            formatSegment.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: Design.Spacing.lg),
+            formatSegment.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Design.Spacing.lg),
+            formatSegment.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Design.Spacing.lg),
+            
+            previewView.topAnchor.constraint(equalTo: formatSegment.bottomAnchor, constant: Design.Spacing.lg),
+            previewView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            previewView.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -Design.Spacing.xl * 2),
+            previewView.heightAnchor.constraint(equalTo: previewView.widthAnchor, multiplier: 16.0/9.0),
+            
+            saveButton.topAnchor.constraint(equalTo: previewView.bottomAnchor, constant: Design.Spacing.xl),
+            saveButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Design.Spacing.lg),
+            saveButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Design.Spacing.lg),
+            saveButton.heightAnchor.constraint(equalToConstant: 50),
+            
+            shareButton.topAnchor.constraint(equalTo: saveButton.bottomAnchor, constant: Design.Spacing.md),
+            shareButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Design.Spacing.lg),
+            shareButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Design.Spacing.lg),
+            shareButton.heightAnchor.constraint(equalToConstant: 50)
+        ])
+        
+        renderPreview()
+    }
+    
+    private func renderPreview() {
+        // Clear existing subviews
+        previewView.subviews.forEach { $0.removeFromSuperview() }
+        
+        // Calculate size based on format
+        let containerWidth = previewView.bounds.width
+        let containerHeight = previewView.bounds.height
+        
+        let previewContent = createPreviewContent(width: containerWidth, height: containerHeight)
+        previewView.addSubview(previewContent)
+        
+        previewContent.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            previewContent.topAnchor.constraint(equalTo: previewView.topAnchor),
+            previewContent.leadingAnchor.constraint(equalTo: previewView.leadingAnchor),
+            previewContent.trailingAnchor.constraint(equalTo: previewView.trailingAnchor),
+            previewContent.bottomAnchor.constraint(equalTo: previewView.bottomAnchor)
         ])
     }
-
+    
+    private func createPreviewContent(width: CGFloat, height: CGFloat) -> UIView {
+        let container = UIView(frame: CGRect(x: 0, y: 0, width: width, height: height))
+        container.backgroundColor = Design.Colors.backgroundPrimary
+        
+        // Header
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: width, height: 60))
+        headerView.backgroundColor = Design.Colors.backgroundSecondary
+        container.addSubview(headerView)
+        
+        // Back button placeholder
+        let backImage = UIImageView(image: UIImage(systemName: "chevron.left"))
+        backImage.tintColor = Design.Colors.textPrimary
+        backImage.frame = CGRect(x: 16, y: 20, width: 24, height: 20)
+        headerView.addSubview(backImage)
+        
+        // Contact name
+        let nameLabel = UILabel(frame: CGRect(x: 50, y: 15, width: width - 100, height: 20))
+        nameLabel.text = conversation.contacts.first?.name ?? "Chat"
+        nameLabel.font = Design.Typography.headline
+        nameLabel.textColor = Design.Colors.textPrimary
+        nameLabel.textAlignment = .center
+        headerView.addSubview(nameLabel)
+        
+        // Messages area
+        let messagesView = UIView(frame: CGRect(x: 0, y: 60, width: width, height: height - 100))
+        container.addSubview(messagesView)
+        
+        // Render messages
+        var yOffset: CGFloat = 10
+        for message in conversation.messages {
+            let isMe = message.senderId == Message.currentUserId
+            let bubbleHeight: CGFloat = 44
+            
+            let bubbleView = UIView(frame: CGRect(
+                x: isMe ? width - 200 - 16 : 16,
+                y: yOffset,
+                width: 200,
+                height: bubbleHeight
+            ))
+            bubbleView.backgroundColor = isMe ? conversation.app.primaryColor : Design.Colors.backgroundSecondary
+            bubbleView.layer.cornerRadius = Design.Radius.medium
+            messagesView.addSubview(bubbleView)
+            
+            let textLabel = UILabel(frame: bubbleView.bounds.insetBy(dx: 12, dy: 12))
+            textLabel.text = message.text
+            textLabel.font = Design.Typography.body
+            textLabel.textColor = isMe ? .white : Design.Colors.textPrimary
+            textLabel.numberOfLines = 0
+            bubbleView.addSubview(textLabel)
+            
+            yOffset += bubbleHeight + 8
+        }
+        
+        // Input bar
+        let inputBar = UIView(frame: CGRect(x: 0, y: height - 40, width: width, height: 40))
+        inputBar.backgroundColor = Design.Colors.backgroundSecondary
+        container.addSubview(inputBar)
+        
+        let inputField = UIView(frame: CGRect(x: 50, y: 6, width: width - 100, height: 28))
+        inputField.backgroundColor = Design.Colors.backgroundPrimary
+        inputField.layer.cornerRadius = 14
+        inputBar.addSubview(inputField)
+        
+        return container
+    }
+    
     @objc private func formatChanged() {
-        let multiplier: CGFloat
+        triggerHaptic()
         switch formatSegment.selectedSegmentIndex {
-        case 0: multiplier = 1.0 // Phone
-        case 1: multiplier = 1.0 // Square
-        case 2: multiplier = 16.0/9.0 // Story
-        default: multiplier = 1.0
+        case 0: exportFormat = .portrait
+        case 1: exportFormat = .square
+        default: exportFormat = .full
         }
-
-        previewView.constraints.forEach { constraint in
-            if constraint.firstAttribute == .height {
-                constraint.isActive = false
-            }
+        renderPreview()
+    }
+    
+    @objc private func saveTapped() {
+        triggerHaptic()
+        
+        // Generate screenshot
+        let renderer = UIGraphicsImageRenderer(bounds: previewView.bounds)
+        let image = renderer.image { context in
+            previewView.drawHierarchy(in: previewView.bounds, afterScreenUpdates: true)
         }
-        previewView.heightAnchor.constraint(equalTo: previewView.widthAnchor, multiplier: multiplier).isActive = true
-
-        UIView.animate(withDuration: 0.3) {
-            self.view.layoutIfNeeded()
+        
+        // Save to photos
+        UIImageWriteToSavedPhotosAlbum(image, self, #selector(imageSaved), nil)
+    }
+    
+    @objc private func imageSaved(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
+        if let error = error {
+            showAlert(title: "Error", message: error.localizedDescription)
+        } else {
+            showAlert(title: "Saved", message: "Image saved to your photo library")
         }
     }
-
+    
     @objc private func shareTapped() {
-        let image = previewView.renderToImage()
+        triggerHaptic()
+        
+        let renderer = UIGraphicsImageRenderer(bounds: previewView.bounds)
+        let image = renderer.image { context in
+            previewView.drawHierarchy(in: previewView.bounds, afterScreenUpdates: true)
+        }
+        
         let activityVC = UIActivityViewController(activityItems: [image], applicationActivities: nil)
         present(activityVC, animated: true)
     }
-
-    @objc private func saveToPhotos() {
-        let image = previewView.renderToImage()
-        UIImageWriteToSavedPhotosAlbum(image, self, #selector(imageSaved(_:didFinishSavingWithError:contextInfo:)), nil)
-    }
-
-    @objc private func imageSaved(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
-        if let error = error {
-            let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-        } else {
-            let alert = UIAlertController(title: "Saved!", message: "Screenshot saved to Photos", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-            triggerHaptic()
-        }
-    }
-
-    private func triggerHaptic() {
-        if AppTheme.hapticEnabled {
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.success)
-        }
-    }
-}
-
-class ChatPreviewView: UIView {
-    private let conversation: Conversation
-    private let scrollView = UIScrollView()
-    private let contentView = UIView()
-    private let statusBarView = UIView()
-    private let headerView = UIView()
-    private let messagesView = UIView()
-
-    init(conversation: Conversation) {
-        self.conversation = conversation
-        super.init(frame: .zero)
-        setupUI()
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    private func setupUI() {
-        backgroundColor = conversation.chatApp.chatBackgroundColor
-
-        addSubview(scrollView)
-        scrollView.addSubview(contentView)
-
-        setupStatusBar()
-        setupHeader()
-        setupMessages()
-
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.translatesAutoresizingMaskIntoConstraints = false
-        statusBarView.translatesAutoresizingMaskIntoConstraints = false
-        headerView.translatesAutoresizingMaskIntoConstraints = false
-        messagesView.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
-
-            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-
-            statusBarView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            statusBarView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            statusBarView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            statusBarView.heightAnchor.constraint(equalToConstant: 47),
-
-            headerView.topAnchor.constraint(equalTo: statusBarView.bottomAnchor),
-            headerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            headerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            headerView.heightAnchor.constraint(equalToConstant: 60),
-
-            messagesView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 8),
-            messagesView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            messagesView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            messagesView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -80)
-        ])
-    }
-
-    private func setupStatusBar() {
-        statusBarView.backgroundColor = conversation.chatApp.chatBackgroundColor
-
-        let timeLabel = UILabel()
-        timeLabel.text = "9:41"
-        timeLabel.font = .systemFont(ofSize: 15, weight: .semibold)
-        timeLabel.textColor = conversation.chatApp.isDarkBackground ? .white : .black
-        statusBarView.addSubview(timeLabel)
-
-        let batteryIcon = UIImageView(image: UIImage(systemName: "battery.100"))
-        batteryIcon.tintColor = conversation.chatApp.isDarkBackground ? .white : .black
-        statusBarView.addSubview(batteryIcon)
-
-        timeLabel.translatesAutoresizingMaskIntoConstraints = false
-        batteryIcon.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            timeLabel.centerYAnchor.constraint(equalTo: statusBarView.centerYAnchor, constant: 10),
-            timeLabel.leadingAnchor.constraint(equalTo: statusBarView.leadingAnchor, constant: 20),
-            batteryIcon.centerYAnchor.constraint(equalTo: statusBarView.centerYAnchor, constant: 10),
-            batteryIcon.trailingAnchor.constraint(equalTo: statusBarView.trailingAnchor, constant: -20)
-        ])
-    }
-
-    private func setupHeader() {
-        headerView.backgroundColor = conversation.chatApp.chatBackgroundColor
-
-        let avatarLabel = UILabel()
-        avatarLabel.text = "😄"
-        avatarLabel.font = .systemFont(ofSize: 36)
-        headerView.addSubview(avatarLabel)
-
-        let nameLabel = UILabel()
-        nameLabel.text = conversation.contacts.last?.name ?? "Chat"
-        nameLabel.font = .systemFont(ofSize: 17, weight: .semibold)
-        nameLabel.textColor = conversation.chatApp.isDarkBackground ? .white : .black
-        headerView.addSubview(nameLabel)
-
-        let statusLabel = UILabel()
-        statusLabel.text = "online"
-        statusLabel.font = .systemFont(ofSize: 13)
-        statusLabel.textColor = conversation.chatApp.isDarkBackground ? UIColor.white.withAlphaComponent(0.6) : UIColor.black.withAlphaComponent(0.6)
-        headerView.addSubview(statusLabel)
-
-        avatarLabel.translatesAutoresizingMaskIntoConstraints = false
-        nameLabel.translatesAutoresizingMaskIntoConstraints = false
-        statusLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            avatarLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            avatarLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
-            nameLabel.leadingAnchor.constraint(equalTo: avatarLabel.trailingAnchor, constant: 12),
-            nameLabel.bottomAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -2),
-            statusLabel.leadingAnchor.constraint(equalTo: avatarLabel.trailingAnchor, constant: 12),
-            statusLabel.topAnchor.constraint(equalTo: headerView.centerYAnchor, constant: 2)
-        ])
-    }
-
-    private func setupMessages() {
-        let stackView = UIStackView()
-        stackView.axis = .vertical
-        stackView.spacing = 8
-        stackView.alignment = .leading
-        messagesView.addSubview(stackView)
-
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            stackView.topAnchor.constraint(equalTo: messagesView.topAnchor, constant: 16),
-            stackView.leadingAnchor.constraint(equalTo: messagesView.leadingAnchor, constant: 16),
-            stackView.trailingAnchor.constraint(equalTo: messagesView.trailingAnchor, constant: -16)
-        ])
-
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-
-        var lastSenderId: UUID?
-        var lastDate: Date?
-
-        for message in conversation.messages {
-            let isSent = message.senderId == conversation.contacts.first?.id
-            let contact = conversation.contacts.first { $0.id == message.senderId }
-
-            let bubbleView = createBubble(text: message.text, isSent: isSent, contactName: contact?.name ?? "", time: formatter.string(from: message.timestamp), chatApp: conversation.chatApp)
-            stackView.addArrangedSubview(bubbleView)
-
-            lastSenderId = message.senderId
-            lastDate = message.timestamp
-        }
-    }
-
-    private func createBubble(text: String, isSent: Bool, contactName: String, time: String, chatApp: ChatApp) -> UIView {
-        let container = UIView()
-
-        let bubble = UIView()
-        bubble.layer.cornerRadius = 18
-        bubble.backgroundColor = isSent ? chatApp.bubbleSentColor : chatApp.bubbleReceivedColor
-        container.addSubview(bubble)
-
-        let nameLabel = UILabel()
-        nameLabel.text = isSent ? "" : contactName
-        nameLabel.font = .systemFont(ofSize: 12, weight: .semibold)
-        nameLabel.textColor = chatApp.isDarkBackground ? Theme.accentCyan : chatApp.primaryColor
-        bubble.addSubview(nameLabel)
-
-        let textLabel = UILabel()
-        textLabel.text = text
-        textLabel.font = .systemFont(ofSize: 16)
-        textLabel.textColor = chatApp.isDarkBackground ? .white : .black
-        textLabel.numberOfLines = 0
-        bubble.addSubview(textLabel)
-
-        let timeLabel = UILabel()
-        timeLabel.text = time
-        timeLabel.font = .systemFont(ofSize: 11)
-        timeLabel.textColor = chatApp.isDarkBackground ? UIColor.white.withAlphaComponent(0.5) : UIColor.black.withAlphaComponent(0.5)
-        bubble.addSubview(timeLabel)
-
-        container.translatesAutoresizingMaskIntoConstraints = false
-        bubble.translatesAutoresizingMaskIntoConstraints = false
-        nameLabel.translatesAutoresizingMaskIntoConstraints = false
-        textLabel.translatesAutoresizingMaskIntoConstraints = false
-        timeLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            container.topAnchor.constraint(equalTo: container.superview!.topAnchor),
-            container.bottomAnchor.constraint(equalTo: container.superview!.bottomAnchor),
-            container.widthAnchor.constraint(equalToConstant: 300),
-
-            bubble.topAnchor.constraint(equalTo: container.topAnchor),
-            bubble.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-            bubble.widthAnchor.constraint(lessThanOrEqualToConstant: 260),
-
-            nameLabel.topAnchor.constraint(equalTo: bubble.topAnchor, constant: 10),
-            nameLabel.leadingAnchor.constraint(equalTo: bubble.leadingAnchor, constant: 14),
-            nameLabel.trailingAnchor.constraint(equalTo: bubble.trailingAnchor, constant: -14),
-
-            textLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
-            textLabel.leadingAnchor.constraint(equalTo: bubble.leadingAnchor, constant: 14),
-            textLabel.trailingAnchor.constraint(equalTo: bubble.trailingAnchor, constant: -14),
-
-            timeLabel.topAnchor.constraint(equalTo: textLabel.bottomAnchor, constant: 4),
-            timeLabel.trailingAnchor.constraint(equalTo: bubble.trailingAnchor, constant: -14),
-            timeLabel.bottomAnchor.constraint(equalTo: bubble.bottomAnchor, constant: -8)
-        ])
-
-        if isSent {
-            bubble.trailingAnchor.constraint(equalTo: container.trailingAnchor).isActive = true
-        } else {
-            bubble.leadingAnchor.constraint(equalTo: container.leadingAnchor).isActive = true
-        }
-
-        return container
-    }
-
-    func renderToImage() -> UIImage {
-        let renderer = UIGraphicsImageRenderer(size: bounds.size)
-        return renderer.image { _ in
-            drawHierarchy(in: bounds, afterScreenUpdates: true)
-        }
+    
+    private func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }
