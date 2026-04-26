@@ -34,3 +34,15 @@ targets:
       path: Sources/App/FakeChat.entitlements
       properties:
         com.apple.security.app-sandbox: true
+
+  FakeChatUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - FakeChatUITests
+    dependencies:
+      - target: FakeChat
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ggsheng.FakeChat.UITests
+        TEST_TARGET_NAME: FakeChat

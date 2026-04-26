@@ -4,6 +4,9 @@ class HomeViewController: UIViewController {
     private var collectionView: UICollectionView!
     private var chatApps = ChatApp.allCases
     
+    private let headerLabel = UILabel()
+    private let subtitleLabel = UILabel()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -11,27 +14,48 @@ class HomeViewController: UIViewController {
     
     private func setupUI() {
         view.backgroundColor = .black
-        title = ""
         
-        // Collection with full width cards
+        // Large bold title
+        headerLabel.text = "Create"
+        headerLabel.font = .systemFont(ofSize: 40, weight: .bold)
+        headerLabel.textColor = .white
+        view.addSubview(headerLabel)
+        
+        // Subtitle
+        subtitleLabel.text = "Choose a chat platform"
+        subtitleLabel.font = .systemFont(ofSize: 16, weight: .medium)
+        subtitleLabel.textColor = UIColor.white.withAlphaComponent(0.5)
+        view.addSubview(subtitleLabel)
+        
+        // Collection layout - full width cards
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
-        layout.minimumLineSpacing = 20
-        layout.sectionInset = UIEdgeInsets(top: 20, left: 0, bottom: 20, right: 0)
+        layout.minimumLineSpacing = 2
+        layout.sectionInset = .zero
         
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.backgroundColor = .black
         collectionView.delegate = self
         collectionView.dataSource = self
-        collectionView.register(ChatAppCardCell.self, forCellWithReuseIdentifier: "ChatAppCardCell")
+        collectionView.register(ChatAppCellV2.self, forCellWithReuseIdentifier: "ChatAppCellV2")
         collectionView.showsVerticalScrollIndicator = false
+        collectionView.isScrollEnabled = true
         view.addSubview(collectionView)
         
+        headerLabel.translatesAutoresizingMaskIntoConstraints = false
+        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         collectionView.translatesAutoresizingMaskIntoConstraints = false
+        
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            headerLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
+            headerLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            
+            subtitleLabel.topAnchor.constraint(equalTo: headerLabel.bottomAnchor, constant: 8),
+            subtitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            
+            collectionView.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 24),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
@@ -50,14 +74,14 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ChatAppCardCell", for: indexPath) as! ChatAppCardCell
-        cell.configure(with: chatApps[indexPath.item], index: indexPath.item)
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ChatAppCellV2", for: indexPath) as! ChatAppCellV2
+        cell.configure(with: chatApps[indexPath.item])
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let width = collectionView.bounds.width
-        return CGSize(width: width, height: 120)
+        return CGSize(width: width, height: 90)
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -68,14 +92,16 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
     }
 }
 
-// MARK: - Chat App Card Cell (TikTok/Instagram Style)
-class ChatAppCardCell: UICollectionViewCell {
+// MARK: - Premium Chat App Cell
+class ChatAppCellV2: UICollectionViewCell {
     private let containerView = UIView()
-    private let iconView = UIImageView()
-    private let appNameLabel = UILabel()
+    private let iconContainerView = UIView()
+    private let iconImageView = UIImageView()
+    private let nameLabel = UILabel()
     private let descriptionLabel = UILabel()
-    private let chevronView = UIImageView()
+    private let chevronImageView = UIImageView()
     private let gradientLayer = CAGradientLayer()
+    private let glowLayer = CALayer()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -88,133 +114,131 @@ class ChatAppCardCell: UICollectionViewCell {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        gradientLayer.frame = containerView.bounds
+        gradientLayer.frame = CGRect(x: 0, y: 0, width: 4, height: containerView.bounds.height)
+        glowLayer.frame = iconContainerView.bounds.insetBy(dx: -10, dy: -10)
     }
     
     private func setupUI() {
+        containerView.backgroundColor = UIColor(hex: "0D0D0D")
         containerView.layer.cornerRadius = 16
-        containerView.clipsToBounds = true
         contentView.addSubview(containerView)
         
-        // Icon
-        iconView.contentMode = .scaleAspectFit
-        iconView.tintColor = .white
-        containerView.addSubview(iconView)
+        // Icon container with glow
+        iconContainerView.layer.cornerRadius = 22
+        iconContainerView.clipsToBounds = false
+        containerView.addSubview(iconContainerView)
         
-        // App Name
-        appNameLabel.font = .systemFont(ofSize: 22, weight: .bold)
-        appNameLabel.textColor = .white
-        containerView.addSubview(appNameLabel)
+        // Icon
+        iconImageView.contentMode = .scaleAspectFit
+        iconImageView.tintColor = .white
+        iconContainerView.addSubview(iconImageView)
+        
+        // Name
+        nameLabel.font = .systemFont(ofSize: 18, weight: .semibold)
+        nameLabel.textColor = .white
+        containerView.addSubview(nameLabel)
         
         // Description
-        descriptionLabel.font = .systemFont(ofSize: 14, weight: .regular)
-        descriptionLabel.textColor = UIColor.white.withAlphaComponent(0.7)
+        descriptionLabel.font = .systemFont(ofSize: 13, weight: .regular)
+        descriptionLabel.textColor = UIColor.white.withAlphaComponent(0.45)
         containerView.addSubview(descriptionLabel)
         
         // Chevron
-        chevronView.image = UIImage(systemName: "chevron.right")
-        chevronView.tintColor = UIColor.white.withAlphaComponent(0.5)
-        chevronView.contentMode = .scaleAspectFit
-        containerView.addSubview(chevronView)
+        chevronImageView.image = UIImage(systemName: "chevron.right")
+        chevronImageView.tintColor = UIColor.white.withAlphaComponent(0.25)
+        chevronImageView.contentMode = .scaleAspectFit
+        containerView.addSubview(chevronImageView)
         
         containerView.translatesAutoresizingMaskIntoConstraints = false
-        iconView.translatesAutoresizingMaskIntoConstraints = false
-        appNameLabel.translatesAutoresizingMaskIntoConstraints = false
+        iconContainerView.translatesAutoresizingMaskIntoConstraints = false
+        iconImageView.translatesAutoresizingMaskIntoConstraints = false
+        nameLabel.translatesAutoresizingMaskIntoConstraints = false
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
-        chevronView.translatesAutoresizingMaskIntoConstraints = false
+        chevronImageView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            containerView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 4),
+            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -4),
             
-            iconView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
-            iconView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            iconView.widthAnchor.constraint(equalToConstant: 44),
-            iconView.heightAnchor.constraint(equalToConstant: 44),
+            iconContainerView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
+            iconContainerView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            iconContainerView.widthAnchor.constraint(equalToConstant: 44),
+            iconContainerView.heightAnchor.constraint(equalToConstant: 44),
             
-            appNameLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 16),
-            appNameLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 32),
-            appNameLabel.trailingAnchor.constraint(equalTo: chevronView.leadingAnchor, constant: -12),
+            iconImageView.centerXAnchor.constraint(equalTo: iconContainerView.centerXAnchor),
+            iconImageView.centerYAnchor.constraint(equalTo: iconContainerView.centerYAnchor),
+            iconImageView.widthAnchor.constraint(equalToConstant: 22),
+            iconImageView.heightAnchor.constraint(equalToConstant: 22),
             
-            descriptionLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 16),
-            descriptionLabel.topAnchor.constraint(equalTo: appNameLabel.bottomAnchor, constant: 4),
-            descriptionLabel.trailingAnchor.constraint(equalTo: chevronView.leadingAnchor, constant: -12),
+            nameLabel.leadingAnchor.constraint(equalTo: iconContainerView.trailingAnchor, constant: 16),
+            nameLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 24),
             
-            chevronView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
-            chevronView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            chevronView.widthAnchor.constraint(equalToConstant: 14),
-            chevronView.heightAnchor.constraint(equalToConstant: 20)
+            descriptionLabel.leadingAnchor.constraint(equalTo: iconContainerView.trailingAnchor, constant: 16),
+            descriptionLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
+            
+            chevronImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
+            chevronImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            chevronImageView.widthAnchor.constraint(equalToConstant: 12),
+            chevronImageView.heightAnchor.constraint(equalToConstant: 18)
         ])
         
-        // Add shadow to content view (not container)
-        contentView.layer.shadowColor = UIColor.black.cgColor
-        contentView.layer.shadowOpacity = 0.3
-        contentView.layer.shadowRadius = 10
-        contentView.layer.shadowOffset = CGSize(width: 0, height: 5)
+        // Shadow under entire card
+        containerView.layer.shadowColor = UIColor.black.cgColor
+        containerView.layer.shadowOpacity = 0.4
+        containerView.layer.shadowRadius = 12
+        containerView.layer.shadowOffset = CGSize(width: 0, height: 4)
     }
     
-    func configure(with app: ChatApp, index: Int) {
-        appNameLabel.text = app.displayName
+    func configure(with app: ChatApp) {
+        nameLabel.text = app.displayName
         
-        // Description for each app
-        let descriptions = [
-            "Blue bubbles • iOS Messages",
-            "Secret chats • Cloud sync",
-            "Snaps disappear • Filters",
-            "End to end encryption",
-            "Stories & Reactions",
-            "Real-time updates",
-            "Servers & Roles"
-        ]
-        descriptionLabel.text = descriptions[index % descriptions.count]
+        let (icon, desc, colors, glowColor) = appInfo(for: app)
+        iconImageView.image = UIImage(systemName: icon)
+        descriptionLabel.text = desc
         
-        // App-specific icon
-        let symbolName: String
-        let gradientColors: [CGColor]
-        
-        switch app {
-        case .iMessage:
-            symbolName = "message.fill"
-            gradientColors = [UIColor(hex: "007AFF").cgColor, UIColor(hex: "5856D6").cgColor]
-        case .telegram:
-            symbolName = "paperplane.fill"
-            gradientColors = [UIColor(hex: "0088CC").cgColor, UIColor(hex: "00D4FF").cgColor]
-        case .snapchat:
-            symbolName = "camera.fill"
-            gradientColors = [UIColor(hex: "FFFC00").cgColor, UIColor(hex: "FF2D7A").cgColor]
-        case .whatsapp:
-            symbolName = "phone.fill"
-            gradientColors = [UIColor(hex: "25D366").cgColor, UIColor(hex: "128C7E").cgColor]
-        case .instagramDM:
-            symbolName = "camera.fill"
-            gradientColors = [UIColor(hex: "E1306C").cgColor, UIColor(hex: "F77737").cgColor]
-        case .twitterX:
-            symbolName = "at"
-            gradientColors = [UIColor(hex: "FFFFFF").cgColor, UIColor(hex: "8E8E93").cgColor]
-        case .discord:
-            symbolName = "bubble.left.and.bubble.right.fill"
-            gradientColors = [UIColor(hex: "5865F2").cgColor, UIColor(hex: "7289DA").cgColor]
-        }
-        
-        iconView.image = UIImage(systemName: symbolName)
-        
-        // Gradient
-        gradientLayer.colors = gradientColors
-        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
-        gradientLayer.endPoint = CGPoint(x: 1, y: 1)
+        // Gradient bar on left
+        gradientLayer.colors = colors
+        gradientLayer.startPoint = CGPoint(x: 0.5, y: 0)
+        gradientLayer.endPoint = CGPoint(x: 0.5, y: 1)
         containerView.layer.insertSublayer(gradientLayer, at: 0)
         
-        // Subtle shadow color matching gradient
-        contentView.layer.shadowColor = app.primaryColor.cgColor
-        contentView.layer.shadowOpacity = 0.3
-        contentView.layer.shadowRadius = 15
-        contentView.layer.shadowOffset = CGSize(width: 0, height: 8)
+        // Glow effect
+        glowLayer.backgroundColor = glowColor.cgColor
+        glowLayer.cornerRadius = 32
+        glowLayer.shadowColor = glowColor.cgColor
+        glowLayer.shadowOpacity = 0.6
+        glowLayer.shadowRadius = 12
+        glowLayer.shadowOffset = .zero
+        iconContainerView.layer.insertSublayer(glowLayer, at: 0)
+        
+        // Icon container background
+        iconContainerView.backgroundColor = colors.first?.withAlphaComponent(0.15)
+    }
+    
+    private func appInfo(for app: ChatApp) -> (String, String, [CGColor], UIColor) {
+        switch app {
+        case .iMessage:
+            return ("message.fill", "Blue bubbles • iOS native", [UIColor(hex: "007AFF").cgColor, UIColor(hex: "5856D6").cgColor], UIColor(hex: "007AFF"))
+        case .telegram:
+            return ("paperplane.fill", "Secret chats • Cloud sync", [UIColor(hex: "0088CC").cgColor, UIColor(hex: "00D4FF").cgColor], UIColor(hex: "0088CC"))
+        case .snapchat:
+            return ("camera.fill", "Snaps • Filters • Stories", [UIColor(hex: "FFFC00").cgColor, UIColor(hex: "FF2D7A").cgColor], UIColor(hex: "FFFC00"))
+        case .whatsapp:
+            return ("phone.fill", "End-to-end encryption", [UIColor(hex: "25D366").cgColor, UIColor(hex: "128C7E").cgColor], UIColor(hex: "25D366"))
+        case .instagramDM:
+            return ("camera.fill", "Stories • Reactions", [UIColor(hex: "E1306C").cgColor, UIColor(hex: "F77737").cgColor], UIColor(hex: "E1306C"))
+        case .twitterX:
+            return ("at", "Real-time updates", [UIColor(hex: "FFFFFF").cgColor, UIColor(hex: "888888").cgColor], UIColor.white)
+        case .discord:
+            return ("bubble.left.and.bubble.right.fill", "Servers • Roles", [UIColor(hex: "5865F2").cgColor, UIColor(hex: "7289DA").cgColor], UIColor(hex: "5865F2"))
+        }
     }
     
     override func prepareForReuse() {
         super.prepareForReuse()
         gradientLayer.removeFromSuperlayer()
+        glowLayer.removeFromSuperlayer()
     }
 }
