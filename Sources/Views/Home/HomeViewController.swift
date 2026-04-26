@@ -214,7 +214,9 @@ class ChatAppCellV2: UICollectionViewCell {
         iconContainerView.layer.insertSublayer(glowLayer, at: 0)
         
         // Icon container background
-        iconContainerView.backgroundColor = colors.first?.withAlphaComponent(0.15)
+        if let firstColor = colors.first {
+            iconContainerView.backgroundColor = UIColor(cgColor: firstColor).withAlphaComponent(0.15)
+        }
     }
     
     private func appInfo(for app: ChatApp) -> (String, String, [CGColor], UIColor) {
