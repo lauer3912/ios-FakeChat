@@ -155,7 +155,8 @@ extension ChatEditorViewController: UITableViewDataSource, UITableViewDelegate {
             let cell = tableView.dequeueReusableCell(withIdentifier: "MessageCell", for: indexPath) as! MessageCell
             let message = conversation.messages[indexPath.row]
             let contact = conversation.contacts.first { $0.id == message.senderId }
-            cell.configure(with: message, contactName: contact?.name ?? "Unknown", chatApp: chatApp)
+            let isSentByMe = message.senderId == conversation.contacts.first?.id
+            cell.configure(with: message, contactName: contact?.name ?? "Unknown", chatApp: chatApp, isSentByMe: isSentByMe)
             return cell
         case 2:
             let cell = tableView.dequeueReusableCell(withIdentifier: "AddCell", for: indexPath)
@@ -295,7 +296,7 @@ class MessageCell: UITableViewCell {
         ])
     }
 
-    func configure(with message: Message, contactName: String, chatApp: ChatApp) {
+    func configure(with message: Message, contactName: String, chatApp: ChatApp, isSentByMe: Bool) {
         senderLabel.text = contactName
         messageLabel.text = message.text
 
@@ -303,8 +304,7 @@ class MessageCell: UITableViewCell {
         formatter.timeStyle = .short
         timeLabel.text = formatter.string(from: message.timestamp)
 
-        let isSent = message.senderId == conversation.contacts.first?.id
-        bubbleView.backgroundColor = isSent ? chatApp.bubbleSentColor : chatApp.bubbleReceivedColor
-        messageLabel.textColor = isSent ? (chatApp.isDarkBackground ? .white : .black) : (chatApp.isDarkBackground ? .white : .black)
+        bubbleView.backgroundColor = isSentByMe ? chatApp.bubbleSentColor : chatApp.bubbleReceivedColor
+        messageLabel.textColor = isSentByMe ? (chatApp.isDarkBackground ? .white : .black) : (chatApp.isDarkBackground ? .white : .black)
     }
 }

@@ -49,7 +49,7 @@ class TemplatesViewController: UIViewController {
         let messages = [
             Message(senderId: contact1.id, text: "Hey you won't believe this!", timestamp: Date()),
             Message(senderId: contact2.id, text: "What happened??", timestamp: Date()),
-            Message(senderId: contact1.id, text: "I just $1M from crypto!", timestamp: Date()),
+            Message(senderId: contact1.id, text: "I just won $1M from crypto!", timestamp: Date()),
             Message(senderId: contact2.id, text: "WHAT?! That's amazing! 🚀", timestamp: Date())
         ]
         let conversation = Conversation(app: app, contacts: [contact1, contact2], messages: messages)
@@ -64,7 +64,7 @@ extension TemplatesViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TemplateCell", for: indexPath) as! TemplateCell
-        cell.configure(with: templates[indexPath.row])
+        cell.configure(with: templates[indexPath.row], index: indexPath.row)
         return cell
     }
 
@@ -140,14 +140,20 @@ class TemplateCell: UITableViewCell {
         ])
     }
 
-    func configure(with template: ChatTemplate) {
+    func configure(with template: ChatTemplate, index: Int) {
         titleLabel.text = template.title
         subtitleLabel.text = template.subtitle
 
-        let apps: [ChatApp] = [.iMessage, .telegram, .whatsapp, .snapchat, .discord]
         let icons = ["💬", "✈️", "📱", "👻", "🎮"]
-        let index = templates.firstIndex(where: { $0.id == template.id }) ?? 0
-        iconLabel.text = icons[index % icons.count]
-        iconView.backgroundColor = apps[index % apps.count].primaryColor.opacity(0.2)
+        let appColors: [UIColor] = [
+            UIColor(hex: "007AFF"),
+            UIColor(hex: "0088CC"),
+            UIColor(hex: "25D366"),
+            UIColor(hex: "FFFC00"),
+            UIColor(hex: "5865F2")
+        ]
+        let iconIndex = index % icons.count
+        iconLabel.text = icons[iconIndex]
+        iconView.backgroundColor = appColors[iconIndex].withAlphaComponent(0.2)
     }
 }

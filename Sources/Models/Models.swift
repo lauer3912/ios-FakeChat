@@ -1,4 +1,4 @@
-import SwiftUI
+import UIKit
 
 enum ChatApp: String, CaseIterable, Identifiable {
     case iMessage = "iMessage"
@@ -13,39 +13,39 @@ enum ChatApp: String, CaseIterable, Identifiable {
 
     var displayName: String { rawValue }
 
-    var primaryColor: Color {
+    var primaryColor: UIColor {
         switch self {
-        case .iMessage: return Color(hex: "007AFF")
-        case .telegram: return Color(hex: "0088CC")
-        case .snapchat: return Color(hex: "FFFC00")
-        case .whatsapp: return Color(hex: "25D366")
-        case .instagramDM: return Color(hex: "E1306C")
-        case .twitterX: return Color.white
-        case .discord: return Color(hex: "5865F2")
+        case .iMessage: return UIColor(hex: "007AFF")
+        case .telegram: return UIColor(hex: "0088CC")
+        case .snapchat: return UIColor(hex: "FFFC00")
+        case .whatsapp: return UIColor(hex: "25D366")
+        case .instagramDM: return UIColor(hex: "E1306C")
+        case .twitterX: return .white
+        case .discord: return UIColor(hex: "5865F2")
         }
     }
 
-    var bubbleReceivedColor: Color {
+    var bubbleReceivedColor: UIColor {
         switch self {
-        case .iMessage: return Color(hex: "E9E9EB")
-        case .telegram: return Color(hex: "0088CC")
-        case .snapchat: return Color.white
-        case .whatsapp: return Color(hex: "DCF8C6")
-        case .instagramDM: return Color(hex: "262626")
-        case .twitterX: return Color.black
-        case .discord: return Color(hex: "363636")
+        case .iMessage: return UIColor(hex: "E9E9EB")
+        case .telegram: return UIColor(hex: "0088CC")
+        case .snapchat: return .white
+        case .whatsapp: return UIColor(hex: "DCF8C6")
+        case .instagramDM: return UIColor(hex: "262626")
+        case .twitterX: return .black
+        case .discord: return UIColor(hex: "363636")
         }
     }
 
-    var bubbleSentColor: Color {
+    var bubbleSentColor: UIColor {
         switch self {
-        case .iMessage: return Color(hex: "007AFF")
-        case .telegram: return Color(hex: "EFFDDE")
-        case .snapchat: return Color(hex: "FFFFFF")
-        case .whatsapp: return Color(hex: "DCF8C6")
-        case .instagramDM: return Color(hex: "262626")
-        case .twitterX: return Color.black
-        case .discord: return Color(hex: "4752C4")
+        case .iMessage: return UIColor(hex: "007AFF")
+        case .telegram: return UIColor(hex: "EFFDDE")
+        case .snapchat: return .white
+        case .whatsapp: return UIColor(hex: "DCF8C6")
+        case .instagramDM: return UIColor(hex: "262626")
+        case .twitterX: return .black
+        case .discord: return UIColor(hex: "4752C4")
         }
     }
 
@@ -61,15 +61,15 @@ enum ChatApp: String, CaseIterable, Identifiable {
         }
     }
 
-    var chatBackgroundColor: Color {
+    var chatBackgroundColor: UIColor {
         switch self {
-        case .iMessage: return Color(hex: "FFFFFF")
-        case .telegram: return Color(hex: "FFFFFF")
-        case .snapchat: return Color.black
-        case .whatsapp: return Color(hex: "ECE5DD")
-        case .instagramDM: return Color(hex: "000000")
-        case .twitterX: return Color.black
-        case .discord: return Color(hex: "36393F")
+        case .iMessage: return .white
+        case .telegram: return .white
+        case .snapchat: return .black
+        case .whatsapp: return UIColor(hex: "ECE5DD")
+        case .instagramDM: return .black
+        case .twitterX: return .black
+        case .discord: return UIColor(hex: "36393F")
         }
     }
 }
