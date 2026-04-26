@@ -137,7 +137,7 @@ struct Message: Codable, Identifiable, Equatable {
     }
     
     var isSentByMe: Bool {
-        return senderId == currentUserId
+        return senderId == Message.currentUserId
     }
     
     static var currentUserId: UUID = UUID()
@@ -249,7 +249,7 @@ struct AppSettings: Codable {
 // MARK: - History Item
 struct HistoryItem: Codable, Identifiable {
     let id: UUID
-    let conversation: Conversation
+    var conversation: Conversation
     let thumbnailPath: String?
     let savedAt: Date
     
