@@ -138,11 +138,28 @@ struct Design {
 }
 
 // MARK: - AppTheme with Dark/Light
-struct AppTheme {
-    @AppStorage("isDarkMode") static var isDarkMode: Bool = true
-    @AppStorage("hapticEnabled") static var hapticEnabled: Bool = true
-    @AppStorage("defaultApp") static var defaultApp: String = ChatApp.iMessage.rawValue
-    @AppStorage("defaultWallpaper") static var defaultWallpaper: String = "default"
+class AppTheme {
+    static let defaults = UserDefaults.standard
+    
+    static var isDarkMode: Bool {
+        get { defaults.bool(forKey: "isDarkMode") }
+        set { defaults.set(newValue, forKey: "isDarkMode") }
+    }
+    
+    static var hapticEnabled: Bool {
+        get { defaults.object(forKey: "hapticEnabled") as? Bool ?? true }
+        set { defaults.set(newValue, forKey: "hapticEnabled") }
+    }
+    
+    static var defaultApp: String {
+        get { defaults.string(forKey: "defaultApp") ?? ChatApp.iMessage.rawValue }
+        set { defaults.set(newValue, forKey: "defaultApp") }
+    }
+    
+    static var defaultWallpaper: String {
+        get { defaults.string(forKey: "defaultWallpaper") ?? "default" }
+        set { defaults.set(newValue, forKey: "defaultWallpaper") }
+    }
     
     static var background: UIColor { isDarkMode ? Design.bgPrimary : UIColor(hex: "F2F2F7") }
     static var surface: UIColor { isDarkMode ? Design.bgSecondary : UIColor.white }
